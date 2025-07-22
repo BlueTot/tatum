@@ -36,6 +36,10 @@ enum Args {
         /// Specify a file path to open in a browser.
         #[arg(short, long)]
         open: Option<PathBuf>,
+
+        #[arg(short, long)]
+        template_path: String,
+
     },
     Render {
         /// The location of the Markdown file to render.
@@ -45,6 +49,9 @@ enum Args {
         /// Defaults to the same path as the `in_file`, but with the `.md` replaced with `.pdf`.
         #[arg(short, long)]
         out_file: Option<PathBuf>,
+
+        #[arg(short, long)]
+        template_path: String,
     },
 }
 
@@ -58,12 +65,13 @@ async fn main() {
             port,
             address,
             open,
+            template_path,
         } => {
             if !quiet {
                 tracing_subscriber::fmt::init();
             }
 
-            let app = construct_router();
+            let app = construct_router(template_path);
 
             let listener = tokio::net::TcpListener::bind((address, port))
                 .await
@@ -89,8 +97,9 @@ async fn main() {
         Args::Render {
             mut in_file,
             out_file,
+            template_path,
         } => {
-            let html = render_doc(&in_file, false)
+            let html = render_doc(&in_file, false, template_path)
                 .await
                 .expect("Failed to render document.");
 

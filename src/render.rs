@@ -1,5 +1,4 @@
 use crate::page_template::PageTemplate;
-use askama::Template;
 use base64::{engine::general_purpose, Engine};
 use pulldown_cmark::{Event, LinkType, Tag};
 use resolve_path::PathResolveExt;
@@ -9,6 +8,7 @@ use url::Url;
 use tokio::fs::{read, read_to_string};
 
 use crate::svg_template::SvgTemplate;
+use crate::page_template::Renderable;
 
 fn data_url(data: &[u8], mime_type: &str) -> String {
     let encoded = general_purpose::STANDARD.encode(data);
@@ -45,7 +45,11 @@ fn generate_message_data_url(message: impl AsRef<str>, color: impl AsRef<str>) -
 ///
 /// `use_websocket` determines whether to include code for automatically updating the document with a
 /// WebSocket connection.
-pub async fn render_doc(path: impl AsRef<Path>, use_websocket: bool) -> anyhow::Result<String> {
+pub async fn render_doc(
+    path: impl AsRef<Path>, 
+    use_websocket: bool,
+    template_path: String,
+) -> anyhow::Result<String> {
     let path = path.as_ref().canonicalize()?;
 
     let file = read_to_string(&path).await?;
@@ -119,9 +123,12 @@ pub async fn render_doc(path: impl AsRef<Path>, use_websocket: bool) -> anyhow::
         body,
         title: path.as_os_str().to_string_lossy().to_string(),
         use_websocket,
+        template_path,
     };
 
-    Ok(template.render().unwrap())
+    // Ok(template.render().unwrap())
+    let html = template.render()?;
+    Ok(html)
 }
 
 /// Returns a relative path to a file if it is under the working directory

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+        integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+            integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd"
+    crossorigin="anonymous"></script>
+
+        <!-- Highlight.js setup - simplified and corrected -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/haskell.min.js"></script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Adds captions to images
+                $('img').wrap('<figure>')
+                $('img').after(function () {return `<figcaption>${$(this).attr('alt')}</figcaption>`});
+
+                for (let element of document.getElementsByClassName("math")) {
+                    let content = element.textContent;
+
+                    katex.render(content, element, {
+                        throwOnError: false
+                    })
+                }
+
+                // Initialise highlight.js for all code blocks
+                hljs.highlightAll();
+
+            });
+
+            {% if use_websocket %}
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const path = urlParams.get('path');
+
+            let socket = new WebSocket(`ws://${location.host}/watch?path=${encodeURI(path)}`);
+            socket.onmessage = function (event) {
+                console.log("Recieved Message");
+                location.reload();
+            }
+
+            console.log(`Created websocket connection to listen for changes to ${path}.`);
+            {% endif %}
+        </script>
+
+        <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+
+:root {
+    --bg: #11121d;         /* darker bluish-black background */
+    --surface: #1b1d2b;    /* slightly lighter surface */
+    --fg: #dcd7ba;
+    --accent: #7e9cd8;
+    --gold: #e0af68;       /* golden for bold text */
+    --red: #e46876;
+    --orange: #ffa066;
+    --yellow: #dca561;
+    --green: #98bb6c;
+    --blue: #7fb4ca;
+    --purple: #957fb8;
+    --gray: #727169;
+}
+
+              body {
+                  background-color: var(--bg);
+                  color: var(--fg);
+                  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+                  line-height: 1.8;
+                  padding: 2rem;
+                  max-width: 850px;
+                  margin: auto;
+              }
+
+              h1 {
+                  color: var(--red);
+                  font-size: 2.5rem;
+                  margin-top: 2rem;
+                  margin-bottom: 1rem;
+                  font-weight: 700;
+              }
+
+              h2 {
+                  color: var(--orange);
+                  font-size: 2rem;
+                  margin-top: 2rem;
+                  margin-bottom: 1rem;
+                  font-weight: 600;
+              }
+
+              h3 {
+                  color: var(--yellow);
+                  font-size: 1.75rem;
+                  margin-top: 1.5rem;
+                  margin-bottom: 0.75rem;
+                  font-weight: 600;
+              }
+
+              h4 {
+                  color: var(--green);
+                  font-size: 1.5rem;
+                  margin-top: 1.25rem;
+                  margin-bottom: 0.5rem;
+                  font-weight: 600;
+              }
+
+              h5 {
+                  color: var(--blue);
+                  font-size: 1.25rem;
+                  margin-top: 1rem;
+                  margin-bottom: 0.5rem;
+                  font-weight: 600;
+              }
+
+              h6 {
+                  color: var(--purple);
+                  font-size: 1.1rem;
+                  margin-top: 0.75rem;
+                  margin-bottom: 0.5rem;
+                  font-weight: 600;
+              }
+
+              a {
+                  color: var(--accent);
+                  text-decoration: underline;
+              }
+
+              code, pre {
+                  font-family: 'Fira Code', monospace;
+                  background-color: var(--surface);
+                  color: var(--fg);
+                  padding: 0.3rem 0.5rem;
+                  border-radius: 6px;
+                  overflow-x: auto;
+              }
+
+              blockquote {
+                  border-left: 4px solid var(--gray);
+                  padding-left: 1rem;
+                  color: var(--gray);
+                  font-style: italic;
+                  background-color: #2b2d51;
+                  margin: 1rem 0;
+              }
+
+              img {
+                  max-width: 100%;
+                  border-radius: 6px;
+                  margin: 1rem 0;
+              }
+
+              figcaption {
+                  font-size: 0.9em;
+                  color: var(--gray);
+                  text-align: center;
+                  margin-top: 0.25rem;
+              }
+
+              .footnote-definition > p {
+                  display: inline;
+              }
+
+              .footnote-definition-label {
+                  font-weight: bold;
+              }
+
+              table {
+                  border-collapse: collapse;
+                  width: 100%;
+                  margin: 1rem 0;
+              }
+
+              th, td {
+                  border: 1px solid var(--gray);
+                  padding: 0.5rem;
+                  text-align: left;
+              }
+
+              th {
+                  background-color: var(--surface);
+                  color: var(--fg);
+              }
+
+        </style>
+
+    </head>
+
+    <body>
+        <main id="content">
+            {{ body | safe }}
+            {# {{ body|escape("none") }} #}
+        </main>
+    </body>
+
+</html>
