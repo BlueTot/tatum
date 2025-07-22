@@ -37,6 +37,7 @@ enum Args {
         #[arg(short, long)]
         open: Option<PathBuf>,
 
+        /// Path to a template directory containing a page.html
         #[arg(short, long)]
         template_path: String,
 
@@ -50,6 +51,7 @@ enum Args {
         #[arg(short, long)]
         out_file: Option<PathBuf>,
 
+        /// Path to a template directory containing a page.html
         #[arg(short, long)]
         template_path: String,
     },

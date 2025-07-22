@@ -5,9 +5,9 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.81"
-# anyhow = "1.0"
 askama = "0.12.1"
 tera = "1.18.1"
+tower-http = { version = "0.5", features = ["fs"] }
 axum = { version = "0.7.5", features = ["ws"] }
 base64 = "0.22.0"
 clap = { version = "4.5.4", features = ["derive"] }

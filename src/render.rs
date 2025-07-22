@@ -48,7 +48,7 @@ fn generate_message_data_url(message: impl AsRef<str>, color: impl AsRef<str>) -
 pub async fn render_doc(
     path: impl AsRef<Path>, 
     use_websocket: bool,
-    template_path: String,
+    serve_path: String,
 ) -> anyhow::Result<String> {
     let path = path.as_ref().canonicalize()?;
 
@@ -123,7 +123,7 @@ pub async fn render_doc(
         body,
         title: path.as_os_str().to_string_lossy().to_string(),
         use_websocket,
-        template_path,
+        template_path: format!("{}/page.html", serve_path),
     };
 
     // Ok(template.render().unwrap())
