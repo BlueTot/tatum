@@ -1,65 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <title>{{ title }}</title>
-  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
-    integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
-  <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
-    integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd"
+    <head>
+        <meta charset="utf-8">
+        <title>{{ title }}</title>
+        <link rel="stylesheet", href="/static/style.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+        integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+            integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd"
     crossorigin="anonymous"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Adds captions to images
-      $('img').wrap('<figure>')
-      $('img').after(function () {return `<figcaption>${$(this).attr('alt')}</figcaption>`});
 
-      for (let element of document.getElementsByClassName("math")) {
-        let content = element.textContent;
+        <!-- Highlight.js setup - simplified and corrected -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/haskell.min.js"></script>
 
-        katex.render(content, element, {
-          throwOnError: false
-        })
-      }
-    });
+        <!-- Katex script -->
+        <script src="/static/katex-macros.js"></script>
 
-    {% if use_websocket %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Adds captions to images
+                $('img').wrap('<figure>')
+                $('img').after(function () {return `<figcaption>${$(this).attr('alt')}</figcaption>`});
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const path = urlParams.get('path');
+                for (let element of document.getElementsByClassName("math")) {
+                    let content = element.textContent;
 
-    let socket = new WebSocket(`ws://${location.host}/watch?path=${encodeURI(path)}`);
-    socket.onmessage = function (event) {
-      console.log("Recieved Message");
-      location.reload();
-    }
+                    katex.render(content, element, {
+                        throwOnError: false,
+                        macros: window.katexMacros || {}
+                    });
+                }
 
-    console.log(`Created websocket connection to listen for changes to ${path}.`);
-    {% endif %}
-  </script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script>hljs.highlightAll();</script>
-  <style>
-    @import url('https://cdn.jsdelivr.net/gh/fonts-archive/Charter/Charter.css');
+                // Initialise highlight.js for all code blocks
+                hljs.highlightAll();
 
-    * {
-      font-family: Charter;
-    }
+            });
 
-    .footnote-definition>p {
-      display: inline;
-    }
+            {% if use_websocket %}
 
-    .footnote-definition-label {
-      font-weight: bold;
-    }
-  </style>
-</head>
+            const urlParams = new URLSearchParams(window.location.search);
+            const path = urlParams.get('path');
 
-<body>{{ body | safe }}</body>
+            let socket = new WebSocket(`ws://${location.host}/watch?path=${encodeURI(path)}`);
+            socket.onmessage = function (event) {
+                console.log("Recieved Message");
+                location.reload();
+            }
+
+            console.log(`Created websocket connection to listen for changes to ${path}.`);
+            {% endif %}
+        </script>
+
+    </head>
+
+    <body>
+        {{ body | safe }}
+    </body>
 
 </html>

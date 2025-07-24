@@ -57,7 +57,15 @@ enum Args {
         #[arg(short, long)]
         template_path: String,
     },
-    New,
+    Init,
+}
+
+/// Function to write a file to the filesystem given a path and the content to write
+async fn write_file(path: &Path, content: &str) -> std::io::Result<()> {
+    let file = File::create(path).await?;
+    let mut writer = BufWriter::new(file);
+    writer.write_all(content.as_bytes()).await?;
+    writer.flush().await
 }
 
 #[tokio::main]
@@ -145,7 +153,7 @@ async fn main() {
             out_file.flush().await.expect("Unable to write to file.");
         }
         // New option
-        Args::New => {
+        Args::Init => {
 
             let root = Path::new(".tatum");
             let template = root.join("default");
@@ -161,28 +169,51 @@ async fn main() {
 
             fs::create_dir_all(&template).expect("Could not create .tatum/default directory");
             
+            // write page.html
             const DEFAULT_PAGE: &str = include_str!("../templates/page.html");
-            let file_path = template.join("page.html");
+            let page_path = template.join("page.html");
 
-            if file_path.exists() {
+            if page_path.exists() {
                 println!(".tatum/default/page.html already exists");
                 return;
             }
 
-            let file = File::create(&file_path)
+            write_file(&page_path, DEFAULT_PAGE)
                 .await
-                .expect("Could not create .tatum/default/page.html");
-
-            let mut writer = BufWriter::new(file);
-
-            writer
-                .write_all(DEFAULT_PAGE.as_bytes())
-                .await
-                .expect("Could not write to ./tatum/default/page.html");
-
-            writer.flush().await.expect("Could not flush buffer");
+                .expect("Unable to write to ./tatum/default/page.html");
 
             println!("Created .tatum/default/page.html");
+
+            // write style.css
+            const DEFAULT_CSS: &str = include_str!("../templates/style.css");
+            let css_path = template.join("style.css");
+
+            if css_path.exists() {
+                println!(".tatum/default/style.css already exists");
+                return;
+            }
+
+            write_file(&css_path, DEFAULT_CSS)
+                .await
+                .expect("Unable to write to .tatum/default/style.css");
+
+            println!("Created .tatum/default/style.css");
+
+            // write katex-macros.js
+            const DEFAULT_MACROS: &str = include_str!("../templates/katex-macros.js");
+            let macros_path = template.join("katex-macros.js");
+
+            if macros_path.exists() {
+                println!(".tatum/default/katex-macros.js already exists");
+                return;
+            }
+
+            write_file(&macros_path, DEFAULT_MACROS)
+                .await
+                .expect("Unable to write to .tatum/default/katex-macros.js");
+
+            println!("Created .tatum/default/katex-macros.js");
+
         }
     }
 }
