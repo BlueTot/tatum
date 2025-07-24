@@ -4,6 +4,8 @@ mod routes;
 mod svg_template;
 
 use std::path::PathBuf;
+use std::fs;
+use std::path::Path;
 
 use clap::{command, Parser};
 use inquire::Confirm;
@@ -55,6 +57,7 @@ enum Args {
         #[arg(short, long)]
         template_path: String,
     },
+    New,
 }
 
 #[tokio::main]
@@ -62,6 +65,7 @@ async fn main() {
     let args = Args::parse();
 
     match args {
+        // Serve option
         Args::Serve {
             quiet,
             port,
@@ -96,6 +100,7 @@ async fn main() {
 
             axum::serve(listener, app).await.unwrap();
         }
+        // Render option
         Args::Render {
             mut in_file,
             out_file,
@@ -138,6 +143,46 @@ async fn main() {
                 .expect("Unable to write to file.");
 
             out_file.flush().await.expect("Unable to write to file.");
+        }
+        // New option
+        Args::New => {
+
+            let root = Path::new(".tatum");
+            let template = root.join("default");
+
+            if root.exists() {
+                println!(".tatum alrady exists");
+                return;
+            }
+            if template.exists() {
+                println!(".tatum/default already exists");
+                return;
+            }
+
+            fs::create_dir_all(&template).expect("Could not create .tatum/default directory");
+            
+            const DEFAULT_PAGE: &str = include_str!("../templates/page.html");
+            let file_path = template.join("page.html");
+
+            if file_path.exists() {
+                println!(".tatum/default/page.html already exists");
+                return;
+            }
+
+            let file = File::create(&file_path)
+                .await
+                .expect("Could not create .tatum/default/page.html");
+
+            let mut writer = BufWriter::new(file);
+
+            writer
+                .write_all(DEFAULT_PAGE.as_bytes())
+                .await
+                .expect("Could not write to ./tatum/default/page.html");
+
+            writer.flush().await.expect("Could not flush buffer");
+
+            println!("Created .tatum/default/page.html");
         }
     }
 }
