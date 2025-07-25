@@ -1,4 +1,5 @@
 use tera::{Context, Tera};
+use chrono::Utc;
 
 pub trait Renderable {
     fn template_path(&self) -> &str;
@@ -28,6 +29,7 @@ impl Renderable for PageTemplate {
         ctx.insert("title", &self.title);
         ctx.insert("body", &self.body);
         ctx.insert("use_websocket", &self.use_websocket);
+        ctx.insert("asset_version", &Utc::now().timestamp());
         ctx
     }
 }
