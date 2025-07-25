@@ -4,6 +4,7 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
+include_dir = "0.7"
 anyhow = "1.0.81"
 askama = "0.12.1"
 tera = "1.18.1"
