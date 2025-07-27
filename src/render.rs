@@ -123,9 +123,15 @@ pub async fn render_doc(
     let macros = read_to_string(format!("{}/katex-macros.js", serve_path)).await?;
     let template_path = format!("{}/page.html", serve_path);
 
+    // get the filename of the path to use as document title
+    let title = path.file_name()
+        .and_then(|name| name.to_str()) // convert OsStr to &str
+        .map(|s| s.to_string()) // Convert &str to String
+        .unwrap_or_else(|| "Untitled".into()); // error fallback
+
     let template = PageTemplate {
         body,
-        title: path.as_os_str().to_string_lossy().to_string(),
+        title,
         css,
         macros,
         use_websocket,
