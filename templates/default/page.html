@@ -4,9 +4,6 @@
         <meta charset="utf-8">
         <title>{{ title }}</title>
 
-        <!-- Custom stylesheet -->
-        <link rel="stylesheet", href="/static/style.css?v={{ asset_version }}">
-
         <!-- Simplecss stylesheet -->
         <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
 
@@ -23,8 +20,13 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/haskell.min.js"></script>
 
-        <!-- Custom katex script -->
-        <script src="/static/katex-macros.js?v={{ asset_version }}"></script>
+        <!-- Embedding css and macros -->
+        <style>
+            {{ inline_css | safe }}
+        </style>
+        <script>
+            window.katexMacros = {{ katex_macros | safe }};
+        </script>
 
         <!-- Rendering Script -->
         <script>

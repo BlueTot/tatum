@@ -3,7 +3,6 @@
     <head>
         <meta charset="utf-8">
         <title>{{ title }}</title>
-        <link rel="stylesheet", href="/static/style.css?v={{ asset_version }}">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
         integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
         <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" crossorigin="anonymous"></script>
@@ -16,9 +15,15 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/haskell.min.js"></script>
 
-        <!-- Katex script -->
-        <script src="/static/katex-macros.js?v={{ asset_version }}"></script>
+        <!-- Embedding css and macros -->
+        <style>
+            {{ inline_css | safe }}
+        </style>
+        <script>
+                window.katexMacros = {{ katex_macros | safe }};
+        </script>
 
+        <!-- Rendering script -->
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 // Adds captions to images

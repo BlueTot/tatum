@@ -4,7 +4,6 @@ mod routes;
 mod svg_template;
 
 use std::path::PathBuf;
-// use std::fs;
 use std::path::Path;
 use include_dir::{include_dir, Dir};
 
@@ -61,90 +60,6 @@ enum Args {
     },
     Init,
 }
-
-/// Function to write a file to the filesystem given a path and the content to write
-// async fn write_file(path: &Path, content: &str) -> std::io::Result<()> {
-//     let file = File::create(path).await?;
-//     let mut writer = BufWriter::new(file);
-//     writer.write_all(content.as_bytes()).await?;
-//     writer.flush().await
-// }
-
-// async fn write_template(path: &Path) -> () {
-//
-//     // create template directory
-//     fs::create_dir(&path)
-//         .expect(&format!(
-//             "Could not create directory {}",
-//             path.to_str().unwrap_or("<invalid path>")
-//         ));
-//
-//     let read_path = Path::new("../templates").join(
-//         &path.file_name()
-//     );
-//
-//     let page = fs::read_to_string(&read_path.join("page.html"))
-//         .expect("Could not read page.html");
-//     let css = fs::read_to_string(&read_path.join("style.css"))
-//         .expect("Could not read style.css");
-//     let macros = fs::read_to_string(&read_path.join("katex-macros.js"))
-//         .expect("Could not read katex-macros.js");
-//
-//     let page_path = &path.join("page.html")
-//     write_file(&path.join("page.html"), &page)
-//         .await
-//         .expect(format!("Could not write to {}", page_path.to_str()));
-//
-//     // write_file(
-//
-//
-//     ()
-//
-//
-// }
-
-// async fn write_recursive(from: &Path, to: &Path) -> BoxFuture<'_, std::io::Result<()>> {
-//     Box::pin(async move {
-//         let mut dir = tokio::fs::read_dir(from).await?;
-//
-//         while let Some(entry) = dir.next_entry().await? {
-//             let path = entry.path();
-//             let dest_path = to.join(entry.file_name());
-//             if path.is_dir() {
-//                 write_recursive(&path, &dest_path).await?;
-//             } else {
-//                 let content = tokio::fs::read_to_string(&path).await?;
-//                 // const FILE: &str = include_str!(&path);
-//                 write_file(&dest_path, &content).await?;
-//                     // .await
-//                     // .expect(format!("Unable to write to {}", &path));
-//             }
-//         }
-//         Ok(())
-//     })
-// }
-
-// fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> std::io::Result<()> {
-//     fs::create_dir_all(&dst)?;
-//     for entry in fs::read_dir(src)? {
-//         let entry = entry?;
-//         let ty = entry.file_type()?;
-//         if ty.is_dir() {
-//             copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
-//         } else {
-//             fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
-//         }
-//     }
-//     Ok(())
-// }
-
-// fn template_path() -> PathBuf {
-//     let curr_file = Path::new(file!());
-//     let source_dir = curr_file.parent().unwrap();
-//     source_dir.join("../templates")
-// }
-
-// static TEMPLATE_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/templates");
 
 pub async fn extract_templates_to(template_dir: &Dir<'_>, dest: &Path) -> std::io::Result<()> {
     for file in template_dir.files() {
@@ -277,56 +192,6 @@ async fn main() {
             ).await.expect("Could not load template `bluetot`");
 
             println!("Created .tatum/bluetot");
-
-            // fs::create_dir_all(&template).expect("Could not create .tatum/default directory");
-            //
-            // copy_dir_all(template_path(), Path::new(".tatum"))
-            //     .expect("Failed to copy templates");
-            
-            // // write page.html
-            // const DEFAULT_PAGE: &str = include_str!("../templates/default/page.html");
-            // let page_path = template.join("page.html");
-            //
-            // if page_path.exists() {
-            //     println!(".tatum/default/page.html already exists");
-            //     return;
-            // }
-            //
-            // write_file(&page_path, DEFAULT_PAGE)
-            //     .await
-            //     .expect("Unable to write to ./tatum/default/page.html");
-            //
-            // println!("Created .tatum/default/page.html");
-            //
-            // // write style.css
-            // const DEFAULT_CSS: &str = include_str!("../templates/default/style.css");
-            // let css_path = template.join("style.css");
-            //
-            // if css_path.exists() {
-            //     println!(".tatum/default/style.css already exists");
-            //     return;
-            // }
-            //
-            // write_file(&css_path, DEFAULT_CSS)
-            //     .await
-            //     .expect("Unable to write to .tatum/default/style.css");
-            //
-            // println!("Created .tatum/default/style.css");
-            //
-            // // write katex-macros.js
-            // const DEFAULT_MACROS: &str = include_str!("../templates/default/katex-macros.js");
-            // let macros_path = template.join("katex-macros.js");
-            //
-            // if macros_path.exists() {
-            //     println!(".tatum/default/katex-macros.js already exists");
-            //     return;
-            // }
-            //
-            // write_file(&macros_path, DEFAULT_MACROS)
-            //     .await
-            //     .expect("Unable to write to .tatum/default/katex-macros.js");
-            //
-            // println!("Created .tatum/default/katex-macros.js");
 
         }
     }

@@ -118,15 +118,20 @@ pub async fn render_doc(
 
     let mut body = String::new();
     pulldown_cmark::html::push_html(&mut body, events.into_iter());
+    
+    let css = read_to_string(format!("{}/style.css", serve_path)).await?;
+    let macros = read_to_string(format!("{}/katex-macros.js", serve_path)).await?;
+    let template_path = format!("{}/page.html", serve_path);
 
     let template = PageTemplate {
         body,
         title: path.as_os_str().to_string_lossy().to_string(),
+        css,
+        macros,
         use_websocket,
-        template_path: format!("{}/page.html", serve_path),
+        template_path,
     };
 
-    // Ok(template.render().unwrap())
     let html = template.render()?;
     Ok(html)
 }

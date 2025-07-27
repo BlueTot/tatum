@@ -1,5 +1,4 @@
 use tera::{Context, Tera};
-use chrono::Utc;
 
 pub trait Renderable {
     fn template_path(&self) -> &str;
@@ -15,6 +14,8 @@ pub trait Renderable {
 pub struct PageTemplate {
     pub title: String,
     pub body: String,
+    pub css: String,
+    pub macros: String,
     pub use_websocket: bool,
     pub template_path: String,
 }
@@ -26,10 +27,22 @@ impl Renderable for PageTemplate {
 
     fn context(&self) -> Context {
         let mut ctx = Context::new();
+
+        // insert the title
         ctx.insert("title", &self.title);
+
+        // insert the body
         ctx.insert("body", &self.body);
+
+        // insert whether to use websockets for updating
         ctx.insert("use_websocket", &self.use_websocket);
-        ctx.insert("asset_version", &Utc::now().timestamp());
+
+        // insert the corresponding css file
+        ctx.insert("inline_css", &self.css);
+        
+        // insert the corresponding katex macros file
+        ctx.insert("katex_macros", &self.macros);
+
         ctx
     }
 }
