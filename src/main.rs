@@ -59,6 +59,10 @@ enum Args {
         template_path: String,
     },
     Init,
+    New {
+        /// Name of template directory to create
+        template_name: String,
+    }
 }
 
 pub async fn extract_templates_to(template_dir: &Dir<'_>, dest: &Path) -> std::io::Result<()> {
@@ -163,7 +167,7 @@ async fn main() {
 
             out_file.flush().await.expect("Unable to write to file.");
         }
-        // New option
+        // Init option
         Args::Init => {
 
             let root = Path::new(".tatum");
@@ -193,6 +197,34 @@ async fn main() {
 
             println!("Created .tatum/bluetot");
 
+        }
+        // New option
+        Args::New { template_name } => {
+            
+            let root = Path::new(".tatum");
+
+            if !root.exists() {
+                println!("Please run tatum init first ");
+                return;
+            }
+            
+            let dir = root.join(&template_name);
+            
+            if dir.exists() {
+                println!("tatum/{} already exists", &template_name);
+                return;
+            }
+
+            fs::create_dir_all(&dir)
+                .await
+                .expect(format!("Could not create ./tatum/{}", &template_name).as_str());
+
+            extract_templates_to(
+                &include_dir!("$CARGO_MANIFEST_DIR/templates/default"),
+                &dir
+            ).await.expect("Could not copy template `default`");
+
+            println!("Created .tatum/{}", &template_name);
         }
     }
 }
