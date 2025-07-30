@@ -66,7 +66,7 @@ enum Args {
         /// Name of template directory to create
         template_name: String,
     },
-    ToLatex {
+    CompileMacros {
         /// Path to a template directory
         #[arg(short, long)]
         template_path: String,
@@ -89,19 +89,6 @@ pub async fn extract_templates_to(template_dir: &Dir<'_>, dest: &Path) -> std::i
         out_file.write_all(contents).await?;
     }
     Ok(())
-}
-
-fn macro_exists(macro_name: &str) -> bool {
-    let tex = format!(r#"\ifdefined{0}\typeout{{DEFINED}}\else\typeout{{UNDEFINED}}\fi\stop"#, macro_name);
-
-    let output = Command::new("pdflatex")
-        .arg("-interaction=nonstopmode")
-        .arg(tex)
-        .output()
-        .expect("Failed to run pdflatex");
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    stdout.contains("DEFINED")
 }
 
 #[tokio::main]
@@ -247,8 +234,8 @@ async fn main() {
 
             println!("Created .tatum/{}", &template_name);
         }
-        // ToLatex option
-        Args::ToLatex { template_path } => {
+        // CompileMacros option
+        Args::CompileMacros { template_path } => {
 
             // attempt to read file
             let path = format!("{}/katex-macros.js", &template_path);
@@ -279,28 +266,20 @@ async fn main() {
                 match v {
                     // string
                     Value::String(s) => {
-                        println!("Macro: {} -> {} (no args)", k, s);
-                        let command = if !macro_exists(k) {
-                            format!("\\newcommand{{{}}}{{{}}}\n", k, s)
-                        } else {
-                            format!("\\renewcommand{{{}}}{{{}}}\n", k, s)
-                        };
+                        let command = format!("\\newcommand{{{}}}{{{}}}\n", k, s);
                         file.write_all(command.as_bytes())
                             .await
                             .expect(format!("Could not write macro {} -> {} (no args)", k, s).as_str());
+                        println!("Macro created: {} -> {} (no args)", k, s);
                     }
                     // array
                     Value::Array(arr) if arr.len() == 2 => {
                         if let (Some(body), Some(args)) = (arr[0].as_str(), arr[1].as_u64()) {
-                            println!("Macro: {} -> {} ({} args)", k, body, args);
-                            let command = if !macro_exists(k) {
-                                format!("\\newcommand{{{}}}[{}]{{{}}}\n", k, args, body)
-                            } else {
-                                format!("\\renewcommand{{{}}}[{}]{{{}}}\n", k, args, body)
-                            };
+                            let command = format!("\\newcommand{{{}}}[{}]{{{}}}\n", k, args, body);
                             file.write_all(command.as_bytes())
                                 .await
                                 .expect(format!("Could not write macro {} -> {} ({} args)", k, body, args).as_str());
+                            println!("Macro created: {} -> {} ({} args)", k, body, args);
                         }
                     }
                     _ => {
