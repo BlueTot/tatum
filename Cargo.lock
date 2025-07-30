@@ -1666,6 +1666,7 @@ dependencies = [
  "pulldown-cmark",
  "resolve-path",
  "serde",
+ "serde_json",
  "tera",
  "tokio",
  "tower-http",

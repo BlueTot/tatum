@@ -3,9 +3,12 @@ mod render;
 mod routes;
 mod svg_template;
 
+// use std::fs::read_to_string;
 use std::path::PathBuf;
 use std::path::Path;
 use include_dir::{include_dir, Dir};
+use std::process::Command;
+use serde_json::Value;
 
 use clap::{command, Parser};
 use inquire::Confirm;
@@ -62,6 +65,11 @@ enum Args {
     New {
         /// Name of template directory to create
         template_name: String,
+    },
+    ToLatex {
+        /// Path to a template directory
+        #[arg(short, long)]
+        template_path: String,
     }
 }
 
@@ -81,6 +89,19 @@ pub async fn extract_templates_to(template_dir: &Dir<'_>, dest: &Path) -> std::i
         out_file.write_all(contents).await?;
     }
     Ok(())
+}
+
+fn macro_exists(macro_name: &str) -> bool {
+    let tex = format!(r#"\ifdefined{0}\typeout{{DEFINED}}\else\typeout{{UNDEFINED}}\fi\stop"#, macro_name);
+
+    let output = Command::new("pdflatex")
+        .arg("-interaction=nonstopmode")
+        .arg(tex)
+        .output()
+        .expect("Failed to run pdflatex");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    stdout.contains("DEFINED")
 }
 
 #[tokio::main]
@@ -225,6 +246,70 @@ async fn main() {
             ).await.expect("Could not copy template `default`");
 
             println!("Created .tatum/{}", &template_name);
+        }
+        // ToLatex option
+        Args::ToLatex { template_path } => {
+
+            // attempt to read file
+            let path = format!("{}/katex-macros.js", &template_path);
+            let content = fs::read_to_string(path)
+                .await
+                .expect("Could not read katex macros");
+
+            // strip off into a json
+            let json_str = content
+                .replace("window.katexMacros = ", "")
+                .replace(";", "")
+                .trim()
+                .to_string();
+
+            // read string to json
+            let macros: Value = serde_json::from_str(&json_str).unwrap();
+
+            // open macros file to write to
+            let macros_path = format!("{}/macros.tex", &template_path);
+            let mut file = File::create(macros_path)
+                .await
+                .expect("Could not create macros file");
+
+            // loop through json
+            for (k, v) in macros.as_object().unwrap() {
+
+                // handle cases of string and array
+                match v {
+                    // string
+                    Value::String(s) => {
+                        println!("Macro: {} -> {} (no args)", k, s);
+                        let command = if !macro_exists(k) {
+                            format!("\\newcommand{{{}}}{{{}}}\n", k, s)
+                        } else {
+                            format!("\\renewcommand{{{}}}{{{}}}\n", k, s)
+                        };
+                        file.write_all(command.as_bytes())
+                            .await
+                            .expect(format!("Could not write macro {} -> {} (no args)", k, s).as_str());
+                    }
+                    // array
+                    Value::Array(arr) if arr.len() == 2 => {
+                        if let (Some(body), Some(args)) = (arr[0].as_str(), arr[1].as_u64()) {
+                            println!("Macro: {} -> {} ({} args)", k, body, args);
+                            let command = if !macro_exists(k) {
+                                format!("\\newcommand{{{}}}[{}]{{{}}}\n", k, args, body)
+                            } else {
+                                format!("\\renewcommand{{{}}}[{}]{{{}}}\n", k, args, body)
+                            };
+                            file.write_all(command.as_bytes())
+                                .await
+                                .expect(format!("Could not write macro {} -> {} ({} args)", k, body, args).as_str());
+                        }
+                    }
+                    _ => {
+                        println!("Macro: {} has unknown format: {}", k, v);
+                    }
+                }
+            }
+
+            println!("Done!");
         }
     }
 }
