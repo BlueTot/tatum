@@ -34,12 +34,22 @@
                 $('img').wrap('<figure>')
                 $('img').after(function () {return `<figcaption>${$(this).attr('alt')}</figcaption>`});
 
+                // [macro, args] support for katex-macros.js
+                const macros = {};
+                for (const [name, value] of Object.entries(window.katexMacros)) {
+                    if (Array.isArray(value)) {
+                        macros[name] = value[0];
+                    } else {
+                        macros[name] = value;
+                    }
+                }
+
                 for (let element of document.getElementsByClassName("math")) {
                     let content = element.textContent;
 
                     katex.render(content, element, {
                         throwOnError: false,
-                        macros: window.katexMacros || {}
+                        macros
                     });
                 }
 

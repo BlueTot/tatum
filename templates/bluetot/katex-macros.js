@@ -4,6 +4,6 @@ window.katexMacros = {
     "\\Q":"\\mathbb{Q}",
     "\\Z": "\\mathbb{Z}",
     "\\N": "\\mathbb{N}",
-    "\\v": "\\vec",
-    "\\b": "\\textbf",
+    "\\v": ["\\vec{#1}", 1],
+    "\\b": ["\\textbf{#1}", 1],
 };
