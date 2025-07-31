@@ -183,11 +183,13 @@ async fn main() {
         Args::CompileMacros { template_path } => {
             compile_macros(template_path)
         }
-        // ToLatex option
+        // ToLatex option - compiles to a latex.
+        // Used to give more control to user
         Args::ToLatex { in_file_path, template_path } => {
             to_latex(in_file_path, template_path)
                 .expect("Failed to convert to latex");
         }
+        // ToPdf option - compiles to a pdf
         Args::ToPdf { in_file_path, template_path } => {
             to_pdf(in_file_path, template_path)
                 .expect("Failed to convert to latex");

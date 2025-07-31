@@ -136,7 +136,8 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
 
     // Ensure the markdown file exists
     if !md_path.exists() {
-        panic!("Markdown file does not exist: {:?}", md_path);
+        eprintln!("ERROR: Markdown file does not exist: {:?}", md_path);
+        std::process::exit(1);
     }
 
     // Determine output .tex path
@@ -149,6 +150,10 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
 
     // Determine macros.tex path
     let macros_path = format!("{}/macros.tex", template_path);
+    if !Path::new(&macros_path).exists() {
+        eprintln!("ERROR: {}/macros.tex does not exist. Either run tatum compile-macros <template-path> or write your own macros.tex", template_path);
+        std::process::exit(1);
+    }
 
     // Run pandoc conversion command
     let status = Command::new("pandoc")
@@ -160,8 +165,10 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
         .arg(macros_path)
         .status()?; // Waits for command to finish
     
+    // If the pandoc command failed
     if !status.success() {
-        panic!("Pandoc failed with status {:?}", status);
+        eprintln!("ERROR: Pandoc failed with status {:?}", status);
+        std::process::exit(1);
     }
 
     println!("Conversion to latex completed. TEX file: {:?}", tex_output_path);
@@ -175,7 +182,8 @@ pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()
 
     // Ensure the markdown file exists
     if !md_path.exists() {
-        panic!("Markdown file does not exist: {:?}", md_path);
+        eprintln!("ERROR: Markdown file does not exist: {:?}", md_path);
+        std::process::exit(1);
     }
 
     // Determine output .pdf path
@@ -192,7 +200,8 @@ pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()
 
     // Ensure the macros.tex file exists
     if !macros_path.exists() {
-        panic!("{}/macros.tex does not exist. Either run tatum compile-macros <template-path> or write your own macros.tex", template_path);
+        eprintln!("ERROR: {}/macros.tex does not exist. Either run tatum compile-macros <template-path> or write your own macros.tex", template_path);
+        std::process::exit(1);
     }
 
     // Use absolute path as we are changing directories
@@ -209,8 +218,10 @@ pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()
         .current_dir(output_dir)
         .status()?;
 
+    // If the pandoc command failed
     if !status.success() {
-        panic!("Pandoc failed with status {:?}", status);
+        eprintln!("ERROR: Pandoc failed with status {:?}", status);
+        std::process::exit(1);
     }
 
     println!("Conversion to pdf completed. PDF file: {:?}", pdf_output_path);
