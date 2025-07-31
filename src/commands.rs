@@ -5,6 +5,7 @@ use serde_json::Value;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
+use colored::*;
 
 fn extract_templates_to(template_dir: &Dir<'_>, dest: &Path) -> std::io::Result<()> {
     for file in template_dir.files() {
@@ -130,13 +131,43 @@ pub fn compile_macros(template_path: String) {
     println!("Done!");
 }
 
+// Print error message for when macros.tex is not found
+fn err_no_macro_tex(template_path: String) {
+    eprintln!(
+        "{} {}\n {}",
+        "ERROR:".red().bold(),
+        format!("{}/macros.tex does not exist.", template_path),
+        "Either run `tatum compile-macros <template-path>` \
+         or write your own macros.tex".yellow()
+    );
+}
+
+// Print error message for when markdown file is not found
+fn err_no_md_file(md_path: &Path) {
+    eprintln!(
+        "{} {}",
+        "ERROR:".red().bold(),
+        format!("Markdown file {} does not exist", md_path.to_str().unwrap())
+    );
+}
+
+// Print error message for when pandoc fails
+fn err_pandoc_fails(status: &std::process::ExitStatus) {
+    eprintln!(
+        "{} {}",
+        "ERROR:".red().bold(),
+        format!("Pandoc failed with status {}", status)
+    );
+}
+
+
 pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<()> {
 
     let md_path = Path::new(in_file_path.as_str());
 
     // Ensure the markdown file exists
     if !md_path.exists() {
-        eprintln!("ERROR: Markdown file does not exist: {:?}", md_path);
+        err_no_md_file(md_path);
         std::process::exit(1);
     }
 
@@ -151,7 +182,7 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
     // Determine macros.tex path
     let macros_path = format!("{}/macros.tex", template_path);
     if !Path::new(&macros_path).exists() {
-        eprintln!("ERROR: {}/macros.tex does not exist. Either run tatum compile-macros <template-path> or write your own macros.tex", template_path);
+        err_no_macro_tex(template_path);
         std::process::exit(1);
     }
 
@@ -167,7 +198,7 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
     
     // If the pandoc command failed
     if !status.success() {
-        eprintln!("ERROR: Pandoc failed with status {:?}", status);
+        err_pandoc_fails(&status);
         std::process::exit(1);
     }
 
@@ -182,7 +213,7 @@ pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()
 
     // Ensure the markdown file exists
     if !md_path.exists() {
-        eprintln!("ERROR: Markdown file does not exist: {:?}", md_path);
+        err_no_md_file(md_path);
         std::process::exit(1);
     }
 
@@ -200,7 +231,7 @@ pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()
 
     // Ensure the macros.tex file exists
     if !macros_path.exists() {
-        eprintln!("ERROR: {}/macros.tex does not exist. Either run tatum compile-macros <template-path> or write your own macros.tex", template_path);
+        err_no_macro_tex(template_path);
         std::process::exit(1);
     }
 
@@ -220,7 +251,7 @@ pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()
 
     // If the pandoc command failed
     if !status.success() {
-        eprintln!("ERROR: Pandoc failed with status {:?}", status);
+        err_pandoc_fails(&status);
         std::process::exit(1);
     }
 

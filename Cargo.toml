@@ -4,6 +4,7 @@ version = "0.2.2"
 edition = "2021"
 
 [dependencies]
+colored = "2.1"
 include_dir = "0.7"
 anyhow = "1.0.81"
 askama = "0.12.1"
