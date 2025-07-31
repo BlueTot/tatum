@@ -157,15 +157,15 @@ async fn main() {
         }
         // Init option
         Args::Init => { 
-            init().await
+            init()
         }
         // New option
         Args::New { template_name } => {
-            new(template_name.to_string()).await
+            new(template_name.to_string())
         }
         // CompileMacros option
         Args::CompileMacros { template_path } => {
-            compile_macros(template_path).await
+            compile_macros(template_path)
         }
     }
 }

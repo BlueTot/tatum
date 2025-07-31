@@ -1,32 +1,29 @@
 use std::path::Path;
 use include_dir::{include_dir, Dir};
 use serde_json::Value;
+use std::fs;
+use std::fs::File;
+use std::io::Write;
 
-use tokio::{
-    fs,
-    fs::File,
-    io::AsyncWriteExt,
-};
-
-async fn extract_templates_to(template_dir: &Dir<'_>, dest: &Path) -> std::io::Result<()> {
+fn extract_templates_to(template_dir: &Dir<'_>, dest: &Path) -> std::io::Result<()> {
     for file in template_dir.files() {
         let rel_path = file.path();
         let output_path = dest.join(rel_path);
 
         // Create parent directories if needed
         if let Some(parent) = output_path.parent() {
-            fs::create_dir_all(parent).await?;
+            fs::create_dir_all(parent)?;
         }
 
         // Write file contents
         let contents = file.contents();
-        let mut out_file = fs::File::create(&output_path).await?;
-        out_file.write_all(contents).await?;
+        let mut out_file = fs::File::create(&output_path)?;
+        out_file.write_all(contents)?;
     }
     Ok(())
 }
 
-pub async fn init() {
+pub fn init() {
 
     let root = Path::new(".tatum");
 
@@ -36,7 +33,6 @@ pub async fn init() {
     }
 
     fs::create_dir_all(&root)
-        .await
         .expect("Could not create .tatum directory");
 
     println!("Created .tatum directory");
@@ -44,19 +40,19 @@ pub async fn init() {
     extract_templates_to(
         &include_dir!("$CARGO_MANIFEST_DIR/templates/default"),
         &root.join("default")
-    ).await.expect("Could not load template `default`");
+    ).expect("Could not load template `default`");
 
     println!("Created .tatum/default");
 
     extract_templates_to(
         &include_dir!("$CARGO_MANIFEST_DIR/templates/bluetot"),
         &root.join("bluetot")
-    ).await.expect("Could not load template `bluetot`");
+    ).expect("Could not load template `bluetot`");
 
     println!("Created .tatum/bluetot");
 }
 
-pub async fn new(template_name: String) {
+pub fn new(template_name: String) {
     let root = Path::new(".tatum");
 
     if !root.exists() {
@@ -72,22 +68,20 @@ pub async fn new(template_name: String) {
     }
 
     fs::create_dir_all(&dir)
-        .await
         .expect(format!("Could not create ./tatum/{}", &template_name).as_str());
 
     extract_templates_to(
         &include_dir!("$CARGO_MANIFEST_DIR/templates/default"),
         &dir
-    ).await.expect("Could not copy template `default`");
+    ).expect("Could not copy template `default`");
 
     println!("Created .tatum/{}", &template_name);
 }
 
-pub async fn compile_macros(template_path: String) {
+pub fn compile_macros(template_path: String) {
     // attempt to read file
     let path = format!("{}/katex-macros.js", &template_path);
     let content = fs::read_to_string(path)
-        .await
         .expect("Could not read katex macros");
 
     // strip off into a json
@@ -103,7 +97,6 @@ pub async fn compile_macros(template_path: String) {
     // open macros file to write to
     let macros_path = format!("{}/macros.tex", &template_path);
     let mut file = File::create(macros_path)
-        .await
         .expect("Could not create macros file");
 
     // loop through json
@@ -115,7 +108,6 @@ pub async fn compile_macros(template_path: String) {
             Value::String(s) => {
                 let command = format!("\\newcommand{{{}}}{{{}}}\n", k, s);
                 file.write_all(command.as_bytes())
-                    .await
                     .expect(format!("Could not write macro {} -> {} (no args)", k, s).as_str());
                 println!("Macro created: {} -> {} (no args)", k, s);
             }
@@ -124,7 +116,6 @@ pub async fn compile_macros(template_path: String) {
                 if let (Some(body), Some(args)) = (arr[0].as_str(), arr[1].as_u64()) {
                     let command = format!("\\newcommand{{{}}}[{}]{{{}}}\n", k, args, body);
                     file.write_all(command.as_bytes())
-                        .await
                         .expect(format!("Could not write macro {} -> {} ({} args)", k, body, args).as_str());
                     println!("Macro created: {} -> {} ({} args)", k, body, args);
                 }
