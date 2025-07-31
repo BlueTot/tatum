@@ -155,6 +155,16 @@ fn err_no_macro_tex(template_path: String) {
     );
 }
 
+// Print error message for when header.tex is not found
+fn err_no_header_tex(template_path: String) {
+    eprintln!(
+        "{} {}\n {}",
+        "ERROR:".red().bold(),
+        format!("{}/header.tex does not exist.", template_path),
+        "If you do not require a header, create a blank file".yellow()
+    );
+}
+
 // Print error message for when markdown file is not found
 fn err_no_md_file(md_path: &Path) {
     eprintln!(
@@ -173,7 +183,7 @@ fn err_pandoc_fails(status: &std::process::ExitStatus) {
     );
 }
 
-
+// Convert to latex
 pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<()> {
 
     let md_path = Path::new(in_file_path.as_str());
@@ -199,6 +209,13 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
         std::process::exit(1);
     }
 
+    // Determine header.tex path
+    let header_path = format!("{}/header.tex", template_path);
+    if !Path::new(&header_path).exists() {
+        err_no_header_tex(template_path);
+        std::process::exit(1);
+    }
+
     // Run pandoc conversion command
     let status = Command::new("pandoc")
         .arg(md_path)
@@ -207,6 +224,8 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
         .arg(&tex_output_path)
         .arg("-H") // header flag
         .arg(macros_path)
+        .arg("-H") // second header flag
+        .arg(header_path)
         .status()?; // Waits for command to finish
     
     // If the pandoc command failed
@@ -220,6 +239,7 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
     Ok(())
 }
 
+// Convert to pdf
 pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()> {
 
     let md_path = Path::new(in_file_path.as_str());
@@ -248,8 +268,19 @@ pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()
         std::process::exit(1);
     }
 
+    // Determine header.tex path
+    let header_path_str = format!("{}/header.tex", &template_path);
+    let header_path = Path::new(&header_path_str);
+
+    // Ensure the header.tex file exists
+    if !header_path.exists() {
+        err_no_header_tex(template_path);
+        std::process::exit(1);
+    }
+
     // Use absolute path as we are changing directories
     let abs_macros_path = fs::canonicalize(macros_path)?;
+    let abs_header_path = fs::canonicalize(header_path)?;
 
     // Run pandoc conversion command
     let status = Command::new("pandoc")
@@ -258,7 +289,9 @@ pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()
         .arg(pdf_output_path.file_name().unwrap()) // get filename
         .arg("--pdf-engine=pdflatex") // specify pdf engine
         .arg("-H") // header flag
-        .arg(abs_macros_path) // 
+        .arg(abs_macros_path) // macros path (absolute)
+        .arg("-H") // second header flag
+        .arg(abs_header_path) // header path (absolute)
         .current_dir(output_dir)
         .status()?;
 
