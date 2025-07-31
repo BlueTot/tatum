@@ -168,3 +168,52 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
 
     Ok(())
 }
+
+pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()> {
+
+    let md_path = Path::new(in_file_path.as_str());
+
+    // Ensure the markdown file exists
+    if !md_path.exists() {
+        panic!("Markdown file does not exist: {:?}", md_path);
+    }
+
+    // Determine output .pdf path
+    let output_dir = md_path.parent().unwrap_or_else(|| Path::new("."));
+    let stem = md_path.file_stem()
+        .expect("No file stem found")
+        .to_string_lossy()
+        .into_owned();
+    let pdf_output_path = output_dir.join(format!("{}.pdf", stem));
+
+    // Determine macros.tex path
+    let macros_path_str = format!("{}/macros.tex", &template_path);
+    let macros_path = Path::new(&macros_path_str);
+
+    // Ensure the macros.tex file exists
+    if !macros_path.exists() {
+        panic!("{}/macros.tex does not exist. Either run tatum compile-macros <template-path> or write your own macros.tex", template_path);
+    }
+
+    // Use absolute path as we are changing directories
+    let abs_macros_path = fs::canonicalize(macros_path)?;
+
+    // Run pandoc conversion command
+    let status = Command::new("pandoc")
+        .arg(md_path.file_name().unwrap()) // get filename
+        .arg("-o") // output flag
+        .arg(pdf_output_path.file_name().unwrap()) // get filename
+        .arg("--pdf-engine=pdflatex") // specify pdf engine
+        .arg("-H") // header flag
+        .arg(abs_macros_path) // 
+        .current_dir(output_dir)
+        .status()?;
+
+    if !status.success() {
+        panic!("Pandoc failed with status {:?}", status);
+    }
+
+    println!("Conversion to pdf completed. PDF file: {:?}", pdf_output_path);
+
+    Ok(())
+}

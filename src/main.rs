@@ -4,7 +4,7 @@ mod routes;
 mod svg_template;
 mod commands;
 
-use crate::commands::{init, new, compile_macros, to_latex};
+use crate::commands::{init, new, compile_macros, to_latex, to_pdf};
 
 use std::path::PathBuf;
 
@@ -70,6 +70,14 @@ enum Args {
     },
     ToLatex {
         /// Path to Markdown file to render.
+        in_file_path: String,
+
+        /// Path to a template directory
+        #[arg(short, long)]
+        template_path: String,
+    },
+    ToPdf {
+        /// Path to Markdown file to render
         in_file_path: String,
 
         /// Path to a template directory
@@ -178,6 +186,10 @@ async fn main() {
         // ToLatex option
         Args::ToLatex { in_file_path, template_path } => {
             to_latex(in_file_path, template_path)
+                .expect("Failed to convert to latex");
+        }
+        Args::ToPdf { in_file_path, template_path } => {
+            to_pdf(in_file_path, template_path)
                 .expect("Failed to convert to latex");
         }
     }
