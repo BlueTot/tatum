@@ -25,13 +25,21 @@ fn extract_templates_to(template_dir: &Dir<'_>, dest: &Path) -> std::io::Result<
     Ok(())
 }
 
+fn err_dir_exists(dir_name: &str) {
+    eprintln!(
+        "{} {}",
+        "ERROR:".red().bold(),
+        format!("{} already exists", dir_name)
+    );
+}
+
 pub fn init() {
 
     let root = Path::new(".tatum");
 
     if root.exists() {
-        println!(".tatum alrady exists");
-        return;
+        err_dir_exists(".tatum");
+        std::process::exit(1);
     }
 
     fs::create_dir_all(&root)
@@ -58,15 +66,20 @@ pub fn new(template_name: String) {
     let root = Path::new(".tatum");
 
     if !root.exists() {
-        println!("Please run tatum init first ");
-        return;
+        eprintln!(
+            "{} {}\n{}",
+            "ERROR:".red().bold(),
+            format!(".tatum/ directory doesn't exist."),
+            "Please run `tatum init` first".yellow()
+        );
+        std::process::exit(1);
     }
     
     let dir = root.join(&template_name);
     
     if dir.exists() {
-        println!("tatum/{} already exists", &template_name);
-        return;
+        err_dir_exists(dir.to_str().unwrap());
+        std::process::exit(1);
     }
 
     fs::create_dir_all(&dir)
