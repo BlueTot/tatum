@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::process::Command;
 use include_dir::{include_dir, Dir};
 use serde_json::Value;
 use std::fs;
@@ -127,4 +128,43 @@ pub fn compile_macros(template_path: String) {
     }
 
     println!("Done!");
+}
+
+pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<()> {
+
+    let md_path = Path::new(in_file_path.as_str());
+
+    // Ensure the markdown file exists
+    if !md_path.exists() {
+        panic!("Markdown file does not exist: {:?}", md_path);
+    }
+
+    // Determine output .tex path
+    let output_dir = md_path.parent().unwrap_or_else(|| Path::new("."));
+    let stem = md_path.file_stem()
+        .expect("No file stem found")
+        .to_string_lossy()
+        .into_owned();
+    let tex_output_path = output_dir.join(format!("{}.tex", stem));
+
+    // Determine macros.tex path
+    let macros_path = format!("{}/macros.tex", template_path);
+
+    // Run pandoc conversion command
+    let status = Command::new("pandoc")
+        .arg(md_path)
+        .arg("-s") // standalone flag
+        .arg("-o") // output flag
+        .arg(&tex_output_path)
+        .arg("-H") // header flag
+        .arg(macros_path)
+        .status()?; // Waits for command to finish
+    
+    if !status.success() {
+        panic!("Pandoc failed with status {:?}", status);
+    }
+
+    println!("Conversion to latex completed. TEX file: {:?}", tex_output_path);
+
+    Ok(())
 }
