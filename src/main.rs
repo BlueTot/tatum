@@ -3,6 +3,7 @@ mod render;
 mod routes;
 mod svg_template;
 mod commands;
+mod utils;
 
 use crate::commands::{init, new, compile_macros, to_latex, to_pdf};
 
