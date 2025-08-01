@@ -42,7 +42,7 @@ enum Args {
 
         /// Path to a template directory containing a page.html
         #[arg(short, long)]
-        template_path: String,
+        template: String,
 
     },
     Render {
@@ -56,7 +56,7 @@ enum Args {
 
         /// Path to a template directory containing a page.html
         #[arg(short, long)]
-        template_path: String,
+        template: String,
     },
     Init,
     New {
@@ -66,34 +66,34 @@ enum Args {
     CompileMacros {
         /// Path to a template directory
         #[arg(short, long)]
-        template_path: String,
+        template: String,
     },
     ToLatex {
         /// Path to Markdown file to render.
-        in_file_path: String,
+        in_file: String,
 
         /// Path to a template directory
         #[arg(short, long)]
-        template_path: String,
+        template: String,
 
         /// The path the final `LATEX` file should be saved
-        /// Defaults to the same path as the `in_file_path`, but with the `.md` replaced with a `.tex`
+        /// Defaults to the same path as the `in_file`, but with the `.md` replaced with a `.tex`
         #[arg(short, long)]
-        out_file_path: Option<String>
+        out_file: Option<String>
 
     },
     ToPdf {
         /// Path to Markdown file to render
-        in_file_path: String,
+        in_file: String,
 
         /// Path to a template directory
         #[arg(short, long)]
-        template_path: String,
+        template: String,
 
         /// The path the final `PDF` file should be saved.
-        /// Defaults to the same path as the `in_file_path`, but with the `.md` replaced with `.pdf`.
+        /// Defaults to the same path as the `in_file`, but with the `.md` replaced with `.pdf`.
         #[arg(short, long)]
-        out_file_path: Option<String>
+        out_file: Option<String>
     }
 }
 
@@ -109,13 +109,13 @@ async fn main() {
             port,
             address,
             open,
-            template_path,
+            template,
         } => {
             if !quiet {
                 tracing_subscriber::fmt::init();
             }
 
-            let app = construct_router(template_path);
+            let app = construct_router(template);
 
             let listener = tokio::net::TcpListener::bind((address, port))
                 .await
@@ -142,9 +142,9 @@ async fn main() {
         Args::Render {
             mut in_file,
             out_file,
-            template_path,
+            template,
         } => {
-            let html = render_doc(&in_file, false, template_path)
+            let html = render_doc(&in_file, false, template)
                 .await
                 .expect("Failed to render document.");
 
@@ -191,18 +191,18 @@ async fn main() {
             new(template_name.to_string())
         }
         // CompileMacros option
-        Args::CompileMacros { template_path } => {
-            compile_macros(template_path)
+        Args::CompileMacros { template } => {
+            compile_macros(template)
         }
         // ToLatex option - compiles to a latex.
         // Used to give more control to user
-        Args::ToLatex { in_file_path, template_path, out_file_path } => {
-            to_latex(in_file_path, template_path, out_file_path)
+        Args::ToLatex { in_file, template, out_file } => {
+            to_latex(in_file, template, out_file)
                 .expect("Failed to convert to latex");
         }
         // ToPdf option - compiles to a pdf
-        Args::ToPdf { in_file_path, template_path, out_file_path } => {
-            to_pdf(in_file_path, template_path, out_file_path)
+        Args::ToPdf { in_file, template, out_file } => {
+            to_pdf(in_file, template, out_file)
                 .expect("Failed to convert to pdf");
         }
     }

@@ -301,10 +301,16 @@ pub fn to_pdf(
     let abs_header_path = fs::canonicalize(&header_path)?;
 
     // Handle the pdf output path separetly as the path may not exist yet
-    let abs_pdf_output_path = fs::canonicalize(
-        pdf_output_path.parent().unwrap_or_else(|| Path::new(".")),
-    ).map(|p| p.join(pdf_output_path.file_name().unwrap()))
-    .unwrap_or(pdf_output_path.clone());
+    let abs_pdf_output_path = if pdf_output_path.is_absolute() {
+        pdf_output_path.clone()
+    } else {
+        std::env::current_dir()?.join(&pdf_output_path)
+    };
+
+    // let abs_pdf_output_path = fs::canonicalize(
+    //     pdf_output_path.parent().unwrap_or_else(|| Path::new(".")),
+    // ).map(|p| p.join(pdf_output_path.file_name().unwrap()))
+    // .unwrap_or(pdf_output_path.clone());
 
     // Run pandoc conversion command
     let status = Command::new("pandoc")
