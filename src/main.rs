@@ -50,7 +50,7 @@ enum Args {
         in_file: PathBuf,
 
         /// The path the final `HTML` file should be saved.
-        /// Defaults to the same path as the `in_file`, but with the `.md` replaced with `.pdf`.
+        /// Defaults to the same path as the `in_file`, but with the `.md` replaced with `.html`.
         #[arg(short, long)]
         out_file: Option<PathBuf>,
 
@@ -75,6 +75,12 @@ enum Args {
         /// Path to a template directory
         #[arg(short, long)]
         template_path: String,
+
+        /// The path the final `LATEX` file should be saved
+        /// Defaults to the same path as the `in_file_path`, but with the `.md` replaced with a `.tex`
+        #[arg(short, long)]
+        out_file_path: Option<String>
+
     },
     ToPdf {
         /// Path to Markdown file to render
@@ -83,6 +89,11 @@ enum Args {
         /// Path to a template directory
         #[arg(short, long)]
         template_path: String,
+
+        /// The path the final `PDF` file should be saved.
+        /// Defaults to the same path as the `in_file_path`, but with the `.md` replaced with `.pdf`.
+        #[arg(short, long)]
+        out_file_path: Option<String>
     }
 }
 
@@ -185,14 +196,14 @@ async fn main() {
         }
         // ToLatex option - compiles to a latex.
         // Used to give more control to user
-        Args::ToLatex { in_file_path, template_path } => {
-            to_latex(in_file_path, template_path)
+        Args::ToLatex { in_file_path, template_path, out_file_path } => {
+            to_latex(in_file_path, template_path, out_file_path)
                 .expect("Failed to convert to latex");
         }
         // ToPdf option - compiles to a pdf
-        Args::ToPdf { in_file_path, template_path } => {
-            to_pdf(in_file_path, template_path)
-                .expect("Failed to convert to latex");
+        Args::ToPdf { in_file_path, template_path, out_file_path } => {
+            to_pdf(in_file_path, template_path, out_file_path)
+                .expect("Failed to convert to pdf");
         }
     }
 }

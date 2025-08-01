@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use include_dir::{include_dir, Dir};
 use serde_json::Value;
@@ -184,7 +184,11 @@ fn err_pandoc_fails(status: &std::process::ExitStatus) {
 }
 
 // Convert to latex
-pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<()> {
+pub fn to_latex(
+    in_file_path: String, 
+    template_path: String, 
+    out_file_path: Option<String>
+) -> std::io::Result<()> {
 
     let md_path = Path::new(in_file_path.as_str());
 
@@ -196,11 +200,16 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
 
     // Determine output .tex path
     let output_dir = md_path.parent().unwrap_or_else(|| Path::new("."));
-    let stem = md_path.file_stem()
-        .expect("No file stem found")
-        .to_string_lossy()
-        .into_owned();
-    let tex_output_path = output_dir.join(format!("{}.tex", stem));
+    let tex_output_path = match out_file_path {
+        None => {
+            output_dir.join(
+                md_path.file_stem().expect("No file stem found")
+            ).with_extension("tex")
+        }
+        Some(s) => {
+            PathBuf::from(&s)
+        }
+    };
 
     // Determine macros.tex path
     let macros_path = format!("{}/macros.tex", template_path);
@@ -240,7 +249,11 @@ pub fn to_latex(in_file_path: String, template_path: String) -> std::io::Result<
 }
 
 // Convert to pdf
-pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()> {
+pub fn to_pdf(
+    in_file_path: String, 
+    template_path: String,
+    out_file_path: Option<String>
+) -> std::io::Result<()> {
 
     let md_path = Path::new(in_file_path.as_str());
 
@@ -252,11 +265,16 @@ pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()
 
     // Determine output .pdf path
     let output_dir = md_path.parent().unwrap_or_else(|| Path::new("."));
-    let stem = md_path.file_stem()
-        .expect("No file stem found")
-        .to_string_lossy()
-        .into_owned();
-    let pdf_output_path = output_dir.join(format!("{}.pdf", stem));
+    let pdf_output_path = match out_file_path {
+        None => {
+            output_dir.join(
+                md_path.file_stem().expect("No file stem found")
+            ).with_extension("pdf")
+        }
+        Some(s) => {
+            PathBuf::from(&s)
+        }
+    };
 
     // Determine macros.tex path
     let macros_path_str = format!("{}/macros.tex", &template_path);
@@ -279,14 +297,20 @@ pub fn to_pdf(in_file_path: String, template_path: String) -> std::io::Result<()
     }
 
     // Use absolute path as we are changing directories
-    let abs_macros_path = fs::canonicalize(macros_path)?;
-    let abs_header_path = fs::canonicalize(header_path)?;
+    let abs_macros_path = fs::canonicalize(&macros_path)?;
+    let abs_header_path = fs::canonicalize(&header_path)?;
+
+    // Handle the pdf output path separetly as the path may not exist yet
+    let abs_pdf_output_path = fs::canonicalize(
+        pdf_output_path.parent().unwrap_or_else(|| Path::new(".")),
+    ).map(|p| p.join(pdf_output_path.file_name().unwrap()))
+    .unwrap_or(pdf_output_path.clone());
 
     // Run pandoc conversion command
     let status = Command::new("pandoc")
         .arg(md_path.file_name().unwrap()) // get filename
         .arg("-o") // output flag
-        .arg(pdf_output_path.file_name().unwrap()) // get filename
+        .arg(abs_pdf_output_path) // get filename
         .arg("--pdf-engine=pdflatex") // specify pdf engine
         .arg("-H") // header flag
         .arg(abs_macros_path) // macros path (absolute)
