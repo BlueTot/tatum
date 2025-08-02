@@ -200,7 +200,7 @@ pub fn to_latex(
     in_file_path: String, 
     template_path: String, 
     out_file_path: Option<String>
-) -> std::io::Result<()> {
+) -> Result<()> {
 
     let md_path = Path::new(in_file_path.as_str());
 
@@ -222,6 +222,25 @@ pub fn to_latex(
             PathBuf::from(&s)
         }
     };
+
+    // if tex output path already exists
+    if tex_output_path.exists() {
+        let ans = Confirm::new("The output file exists. Do you wish to overwrite?")
+            .with_default(false)
+            .prompt();
+
+        match ans {
+            Ok(true) => {
+                println!("{}", "Overwriting...".yellow());
+            }
+            Ok(false) => {
+                return Err(anyhow!("{}", "Exiting..".red()));
+            }
+            Err(_) =>  {
+                return Err(anyhow!("{}", "Failed to recognize confirmation.".red()))
+            }
+        }
+    }
 
     // Determine macros.tex path
     let macros_path = format!("{}/macros.tex", template_path);
@@ -265,7 +284,7 @@ pub fn to_pdf(
     in_file_path: String, 
     template_path: String,
     out_file_path: Option<String>
-) -> std::io::Result<()> {
+) -> Result<()> {
 
     let md_path = Path::new(in_file_path.as_str());
 
@@ -287,6 +306,25 @@ pub fn to_pdf(
             PathBuf::from(&s)
         }
     };
+
+    // if output path already exists
+    if pdf_output_path.exists() {
+        let ans = Confirm::new("The output file exists. Do you wish to overwrite?")
+            .with_default(false)
+            .prompt();
+
+        match ans {
+            Ok(true) => {
+                println!("{}", "Overwriting...".yellow());
+            }
+            Ok(false) => {
+                return Err(anyhow!("{}", "Exiting..".red()));
+            }
+            Err(_) =>  {
+                return Err(anyhow!("{}", "Failed to recognize confirmation.".red()))
+            }
+        }
+    }
 
     // Determine macros.tex path
     let macros_path_str = format!("{}/macros.tex", &template_path);
