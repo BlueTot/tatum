@@ -5,7 +5,7 @@ mod svg_template;
 mod commands;
 mod utils;
 
-use crate::commands::{render, init, new, compile_macros, to_latex, to_pdf, render_all};
+use crate::commands::{to_html, init, new, compile_macros, to_latex, to_pdf, render_all};
 
 use std::path::PathBuf;
 
@@ -52,6 +52,10 @@ enum Args {
         /// Path to a template directory containing a page.html
         #[arg(short, long)]
         template: String,
+
+        /// Whether to create parent directory of output file
+        #[arg(short)]
+        parent: bool,
     },
     Init,
     New {
@@ -94,6 +98,10 @@ enum Args {
         /// Path to a template directory
         #[arg(short, long)]
         template: String,
+
+        /// Whether to create parent directory of output file
+        #[arg(short)]
+        parent: bool
     }
 }
 
@@ -139,8 +147,8 @@ async fn main() {
             axum::serve(listener, app).await.unwrap();
         }
         // Render option - async
-        Args::Render { in_file, out_file, template, } => {
-            render(in_file, out_file, template)
+        Args::Render { in_file, out_file, template, parent } => {
+            to_html(in_file, out_file, template, parent)
                 .await
                 .expect("Failed to render");
         }
@@ -168,8 +176,8 @@ async fn main() {
                 .expect("Failed to convert to pdf");
         }
         // RenderAll option - renders all the files in the render-list.json file
-        Args::RenderAll {template} => {
-            match render_all(template).await {
+        Args::RenderAll {template, parent} => {
+            match render_all(template, parent).await {
                 Ok(_) => (),
                 Err(e) => eprintln!("{}", e.to_string())
             };

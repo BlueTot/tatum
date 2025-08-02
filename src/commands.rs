@@ -14,7 +14,7 @@ use crate::utils::*;
 use crate::render::render_doc;
 
 // Async render function that converts to a standalone HTML document
-pub async fn render(mut in_file: PathBuf, out_file: Option<PathBuf>, template: String) -> Result<()> {
+pub async fn to_html(mut in_file: PathBuf, out_file: Option<PathBuf>, template: String, parent: bool) -> Result<()> {
  
     let html = render_doc(&in_file, false, template)
         .await
@@ -40,6 +40,22 @@ pub async fn render(mut in_file: PathBuf, out_file: Option<PathBuf>, template: S
             Err(_) =>  {
                 return Err(anyhow!("{}", "Failed to recognize confirmation.".red()))
             }
+        }
+    }
+
+    // whether to create parent directory or not (-p flag)
+    if parent {
+        let dir_path = out_file.parent().unwrap_or_else(|| Path::new("."));
+        if !dir_path.exists() {
+            tokio::fs::create_dir_all(&dir_path)
+                .await
+                .expect(format!("Could not create directory {}", &dir_path.to_str().unwrap()).as_str());
+            println!(
+                "{}",
+                format!(
+                    "Recursively created {}", &dir_path.to_str().unwrap()
+                ).yellow()
+            );
         }
     }
 
@@ -327,7 +343,7 @@ pub fn to_pdf(
     Ok(())
 }
 
-pub async fn render_all(template: String) -> Result<()> {
+pub async fn render_all(template: String, parent: bool) -> Result<()> {
 
     // read render-list.json
     let render_list = fs::read_to_string(".tatum/render-list.json")
@@ -340,10 +356,11 @@ pub async fn render_all(template: String) -> Result<()> {
     for (src, dest) in files.as_object().unwrap() {
         let dest = dest.as_str().unwrap();
         
-        let result = render(
+        let result = to_html(
             PathBuf::from(&src), 
             Some(PathBuf::from(&dest)), 
-            template.clone()
+            template.clone(),
+            parent 
         ).await;
 
         match result {
