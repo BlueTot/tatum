@@ -78,7 +78,11 @@ enum Args {
         /// The path the final `LATEX` file should be saved
         /// Defaults to the same path as the `in_file`, but with the `.md` replaced with a `.tex`
         #[arg(short, long)]
-        out_file: Option<String>
+        out_file: Option<String>,
+
+        /// Whether to create parent directory of output file
+        #[arg(short, long)]
+        parent: bool
 
     },
     ToPdf {
@@ -92,7 +96,11 @@ enum Args {
         /// The path the final `PDF` file should be saved.
         /// Defaults to the same path as the `in_file`, but with the `.md` replaced with `.pdf`.
         #[arg(short, long)]
-        out_file: Option<String>
+        out_file: Option<String>,
+
+        /// Whether to create parent directory of output file
+        #[arg(short, long)]
+        parent: bool
     },
     RenderAll {
         /// Path to a template directory
@@ -166,15 +174,15 @@ async fn main() {
         }
         // ToLatex option - compiles to a latex.
         // Used to give more control to user
-        Args::ToLatex { in_file, template, out_file } => {
-            match to_latex(in_file, template, out_file) {
+        Args::ToLatex { in_file, template, out_file, parent } => {
+            match to_latex(in_file, template, out_file, parent) {
                 Ok(_) => (),
                 Err(e) => eprintln!("{}", e.to_string())
             }
         }
         // ToPdf option - compiles to a pdf
-        Args::ToPdf { in_file, template, out_file } => {
-            match to_pdf(in_file, template, out_file) {
+        Args::ToPdf { in_file, template, out_file, parent } => {
+            match to_pdf(in_file, template, out_file, parent) {
                 Ok(_) => (),
                 Err(e) => eprintln!("{}", e.to_string())
             }

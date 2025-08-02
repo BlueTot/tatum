@@ -199,7 +199,8 @@ pub fn compile_macros(template_path: String) {
 pub fn to_latex(
     in_file_path: String, 
     template_path: String, 
-    out_file_path: Option<String>
+    out_file_path: Option<String>,
+    parent: bool
 ) -> Result<()> {
 
     let md_path = Path::new(in_file_path.as_str());
@@ -239,6 +240,21 @@ pub fn to_latex(
             Err(_) =>  {
                 return Err(anyhow!("{}", "Failed to recognize confirmation.".red()))
             }
+        }
+    }
+
+    // whether to create parent directory or not (-p flag)
+    if parent {
+        let dir_path = tex_output_path.parent().unwrap_or_else(|| Path::new("."));
+        if !dir_path.exists() {
+            fs::create_dir_all(&dir_path)
+                .expect(format!("Could not create directory {}", &dir_path.to_str().unwrap()).as_str());
+            println!(
+                "{}",
+                format!(
+                    "Recursively created {}", &dir_path.to_str().unwrap()
+                ).yellow()
+            );
         }
     }
 
@@ -283,7 +299,8 @@ pub fn to_latex(
 pub fn to_pdf(
     in_file_path: String, 
     template_path: String,
-    out_file_path: Option<String>
+    out_file_path: Option<String>,
+    parent: bool
 ) -> Result<()> {
 
     let md_path = Path::new(in_file_path.as_str());
@@ -323,6 +340,21 @@ pub fn to_pdf(
             Err(_) =>  {
                 return Err(anyhow!("{}", "Failed to recognize confirmation.".red()))
             }
+        }
+    }
+
+    // whether to create parent directory or not (-p flag)
+    if parent {
+        let dir_path = pdf_output_path.parent().unwrap_or_else(|| Path::new("."));
+        if !dir_path.exists() {
+            fs::create_dir_all(&dir_path)
+                .expect(format!("Could not create directory {}", &dir_path.to_str().unwrap()).as_str());
+            println!(
+                "{}",
+                format!(
+                    "Recursively created {}", &dir_path.to_str().unwrap()
+                ).yellow()
+            );
         }
     }
 
