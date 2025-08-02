@@ -167,13 +167,17 @@ async fn main() {
         // ToLatex option - compiles to a latex.
         // Used to give more control to user
         Args::ToLatex { in_file, template, out_file } => {
-            to_latex(in_file, template, out_file)
-                .expect("Failed to convert to latex");
+            match to_latex(in_file, template, out_file) {
+                Ok(_) => (),
+                Err(e) => eprintln!("{}", e.to_string())
+            }
         }
         // ToPdf option - compiles to a pdf
         Args::ToPdf { in_file, template, out_file } => {
-            to_pdf(in_file, template, out_file)
-                .expect("Failed to convert to pdf");
+            match to_pdf(in_file, template, out_file) {
+                Ok(_) => (),
+                Err(e) => eprintln!("{}", e.to_string())
+            }
         }
         // RenderAll option - renders all the files in the render-list.json file
         Args::RenderAll {template, parent} => {
