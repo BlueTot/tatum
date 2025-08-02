@@ -8,7 +8,7 @@ use std::io::Write;
 use colored::*;
 use inquire::Confirm;
 use tokio::io::AsyncWriteExt;
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 
 use crate::utils::*;
 use crate::render::render_doc;
@@ -32,20 +32,23 @@ pub async fn render(mut in_file: PathBuf, out_file: Option<PathBuf>, template: S
 
         match ans {
             Ok(true) => {
-                println!("Overwriting...");
+                println!("{}", "Overwriting...".yellow());
             }
             Ok(false) => {
-                println!("Exiting...");
-                std::process::exit(1);
+                return Err(anyhow!("{}", "Exiting..".red()));
             }
-            Err(_) => println!("Failed to recognize confirmation."),
+            Err(_) =>  {
+                return Err(anyhow!("{}", "Failed to recognize confirmation.".red()))
+            }
         }
     }
 
     let out_file = tokio::fs::File::create(&out_file)
         .await
-        .with_context(|| format!("Unable to create output file: {:?}", out_file))?;
-        // .expect("Unable to open out_file.");
+        .with_context(|| err(
+            format!("Unable to create output file: {:?}", out_file).as_str()
+        ))?;
+
     let mut out_file = tokio::io::BufWriter::new(out_file);
 
     out_file
@@ -324,11 +327,11 @@ pub fn to_pdf(
     Ok(())
 }
 
-pub async fn render_all(template: String) {
+pub async fn render_all(template: String) -> Result<()> {
 
     // read render-list.json
     let render_list = fs::read_to_string(".tatum/render-list.json")
-        .expect("Could not read .tatum/render-list.json");
+        .with_context(|| err("Could not read .tatum/render-list.json"))?;
 
     // read string to json
     let files: Value = serde_json::from_str(&render_list).unwrap();
@@ -336,14 +339,22 @@ pub async fn render_all(template: String) {
     // call render on each file
     for (src, dest) in files.as_object().unwrap() {
         let dest = dest.as_str().unwrap();
-        render(
+        
+        let result = render(
             PathBuf::from(&src), 
             Some(PathBuf::from(&dest)), 
             template.clone()
-        ).await.expect(format!("Failed to render {} -> {}", src, dest).as_str());
-        println!("Rendered {} -> {}", src, dest); 
+        ).await;
+
+        match result {
+            Ok(_) => {
+                println!("Rendered {} to {}", src, dest);
+            }
+            Err(e) => {
+                eprintln!("{}", e.to_string());
+            }
+        }
     }
     
-    println!("Done");
-
+    Ok(())
 }

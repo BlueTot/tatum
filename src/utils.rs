@@ -68,3 +68,12 @@ pub fn err_pandoc_fails(status: &std::process::ExitStatus) {
         format!("Pandoc failed with status {}", status)
     );
 }
+
+// Print error message
+pub fn err(msg: &str) -> String {
+    format!(
+        "{} {}",
+        "ERROR:".red().bold(),
+        msg
+    )
+}

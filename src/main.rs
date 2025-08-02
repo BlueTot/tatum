@@ -169,7 +169,10 @@ async fn main() {
         }
         // RenderAll option - renders all the files in the render-list.json file
         Args::RenderAll {template} => {
-            render_all(template).await;
+            match render_all(template).await {
+                Ok(_) => (),
+                Err(e) => eprintln!("{}", e.to_string())
+            };
         }
     }
 }
