@@ -5,18 +5,12 @@ mod svg_template;
 mod commands;
 mod utils;
 
-use crate::commands::{init, new, compile_macros, to_latex, to_pdf};
+use crate::commands::{render, init, new, compile_macros, to_latex, to_pdf, render_all};
 
 use std::path::PathBuf;
 
 use clap::{command, Parser};
-use inquire::Confirm;
-use render::render_doc;
 use routes::construct_router;
-use tokio::{
-    fs::File,
-    io::{AsyncWriteExt, BufWriter},
-};
 use tracing::info;
 
 #[derive(Parser, Debug)]
@@ -95,6 +89,11 @@ enum Args {
         /// Defaults to the same path as the `in_file`, but with the `.md` replaced with `.pdf`.
         #[arg(short, long)]
         out_file: Option<String>
+    },
+    RenderAll {
+        /// Path to a template directory
+        #[arg(short, long)]
+        template: String,
     }
 }
 
@@ -104,7 +103,7 @@ async fn main() {
     let args = Args::parse();
 
     match args {
-        // Serve option
+        // Serve option - async
         Args::Serve {
             quiet,
             port,
@@ -139,49 +138,11 @@ async fn main() {
 
             axum::serve(listener, app).await.unwrap();
         }
-        // Render option
-        Args::Render {
-            mut in_file,
-            out_file,
-            template,
-        } => {
-            let html = render_doc(&in_file, false, template)
+        // Render option - async
+        Args::Render { in_file, out_file, template, } => {
+            render(in_file, out_file, template)
                 .await
-                .expect("Failed to render document.");
-
-            let out_file = out_file.unwrap_or_else(move || {
-                in_file.set_extension("html");
-                in_file
-            });
-
-            if out_file.exists() {
-                let ans = Confirm::new("The output file exists. Do you wish to overwrite?")
-                    .with_default(false)
-                    .prompt();
-
-                match ans {
-                    Ok(true) => {
-                        println!("Overwriting...");
-                    }
-                    Ok(false) => {
-                        println!("Exiting...");
-                        return;
-                    }
-                    Err(_) => println!("Failed to recognize confirmation."),
-                }
-            }
-
-            let out_file = File::create(out_file)
-                .await
-                .expect("Unable to open out_file.");
-            let mut out_file = BufWriter::new(out_file);
-
-            out_file
-                .write_all(html.as_bytes())
-                .await
-                .expect("Unable to write to file.");
-
-            out_file.flush().await.expect("Unable to write to file.");
+                .expect("Failed to render");
         }
         // Init option
         Args::Init => { 
@@ -206,5 +167,10 @@ async fn main() {
             to_pdf(in_file, template, out_file)
                 .expect("Failed to convert to pdf");
         }
+        // RenderAll option - renders all the files in the render-list.json file
+        Args::RenderAll {template} => {
+            render_all(template).await;
+        }
     }
 }
+

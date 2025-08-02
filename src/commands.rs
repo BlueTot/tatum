@@ -6,7 +6,56 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use colored::*;
+use inquire::Confirm;
+use tokio::io::AsyncWriteExt;
+use anyhow::{Context, Result};
+
 use crate::utils::*;
+use crate::render::render_doc;
+
+// Async render function that converts to a standalone HTML document
+pub async fn render(mut in_file: PathBuf, out_file: Option<PathBuf>, template: String) -> Result<()> {
+ 
+    let html = render_doc(&in_file, false, template)
+        .await
+        .expect("Failed to render document.");
+
+    let out_file = out_file.unwrap_or_else(move || {
+        in_file.set_extension("html");
+        in_file
+    });
+
+    if out_file.exists() {
+        let ans = Confirm::new("The output file exists. Do you wish to overwrite?")
+            .with_default(false)
+            .prompt();
+
+        match ans {
+            Ok(true) => {
+                println!("Overwriting...");
+            }
+            Ok(false) => {
+                println!("Exiting...");
+                std::process::exit(1);
+            }
+            Err(_) => println!("Failed to recognize confirmation."),
+        }
+    }
+
+    let out_file = tokio::fs::File::create(&out_file)
+        .await
+        .with_context(|| format!("Unable to create output file: {:?}", out_file))?;
+        // .expect("Unable to open out_file.");
+    let mut out_file = tokio::io::BufWriter::new(out_file);
+
+    out_file
+        .write_all(html.as_bytes())
+        .await
+        .expect("Unable to write to file.");
+
+    out_file.flush().await.expect("Unable to write to file.");
+    Ok(())
+}
 
 pub fn init() {
 
@@ -35,6 +84,14 @@ pub fn init() {
     ).expect("Could not load template `bluetot`");
 
     println!("Created .tatum/bluetot");
+
+    const RENDER_LIST: &str = include_str!("../templates/render-list.json");
+    let mut file = File::create(root.join("render-list.json"))
+        .expect("Could not create .tatum/render-list.json");
+    file.write_all(RENDER_LIST.as_bytes())
+        .expect("Could not write to .tatum/render-list.json");
+
+    println!("Created .tatum/render-list.json");
 }
 
 pub fn new(template_name: String) {
@@ -265,4 +322,28 @@ pub fn to_pdf(
     println!("Conversion to pdf completed. PDF file: {:?}", pdf_output_path);
 
     Ok(())
+}
+
+pub async fn render_all(template: String) {
+
+    // read render-list.json
+    let render_list = fs::read_to_string(".tatum/render-list.json")
+        .expect("Could not read .tatum/render-list.json");
+
+    // read string to json
+    let files: Value = serde_json::from_str(&render_list).unwrap();
+
+    // call render on each file
+    for (src, dest) in files.as_object().unwrap() {
+        let dest = dest.as_str().unwrap();
+        render(
+            PathBuf::from(&src), 
+            Some(PathBuf::from(&dest)), 
+            template.clone()
+        ).await.expect(format!("Failed to render {} -> {}", src, dest).as_str());
+        println!("Rendered {} -> {}", src, dest); 
+    }
+    
+    println!("Done");
+
 }
