@@ -1,20 +1,19 @@
 # Tatum
 
-An extension of [elijah-potter/tatum](https://github.com/elijah-potter/tatum) used to improve markdown note-taking in the terminal.
+An extension of [elijah-potter/tatum](https://github.com/elijah-potter/tatum) used to improve markdown note-taking in the terminal by providing styling templates, macros and better exports.
 
-Tatum includes:
+## Features
 
 - **Runtime Templating**
     * Ability to choose *custom* styling templates at runtime via the `-t` option.
 - **Latex Macros**
     * Easy customisation of *latex replacement macros* to make typing easier.
-
 - **Better Exporting**
     * Bulk exporting of `.md` to `.html` via the `render-all` command
     * Professional `.pdf` exports using the `pdflatex` pdf-engine, with support for custom `.tex` header files
     * Export to _latex_ for further control over PDF exporting pipeline
 
-### Installation
+## Installation
 
 First, install Tatum:
 
