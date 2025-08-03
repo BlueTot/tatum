@@ -15,8 +15,13 @@ use routes::construct_router;
 use tracing::info;
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(
+    version, 
+    about, 
+    long_about = "A simple CLI tool that serves, renders, and exports markdown files with custom templates"
+)]
 enum Args {
+    /// Starts a webserver to serve .md files as HTML
     Serve {
         /// Whether to print logs.
         /// If true, Tatum will exclusively print out the `address:port` of the listening server once it starts.
@@ -41,6 +46,7 @@ enum Args {
         template: String,
 
     },
+    /// Renders a .md file to HTML
     Render {
         /// The location of the Markdown file to render.
         in_file: PathBuf,
@@ -58,16 +64,21 @@ enum Args {
         #[arg(short)]
         parent: bool,
     },
+    /// Creates the tatum config directory
     Init,
+    /// Creates a new template directory
     New {
         /// Name of template directory to create
         template_name: String,
     },
+    /// Compiles a given template's katex-macros.json to macros.tex. Must be run before exporting
+    /// to PDF or LATEX
     CompileMacros {
         /// Path to a template directory
         #[arg(short, long)]
         template: String,
     },
+    /// Exports a .md file to LATEX
     ToLatex {
         /// Path to Markdown file to render.
         in_file: String,
@@ -76,7 +87,7 @@ enum Args {
         #[arg(short, long)]
         template: String,
 
-        /// The path the final `LATEX` file should be saved
+        /// The path the final `LATEX` file should be saved.
         /// Defaults to the same path as the `in_file`, but with the `.md` replaced with a `.tex`
         #[arg(short, long)]
         out_file: Option<String>,
@@ -86,6 +97,7 @@ enum Args {
         parent: bool
 
     },
+    /// Exports a .md file to PDF using the pdflatex engine
     ToPdf {
         /// Path to Markdown file to render
         in_file: String,
@@ -103,6 +115,8 @@ enum Args {
         #[arg(short, long)]
         parent: bool
     },
+    /// Renders all files specified in ./.tatum/render-list.json to their specified locations to
+    /// HTML
     RenderAll {
         /// Path to a template directory
         #[arg(short, long)]
