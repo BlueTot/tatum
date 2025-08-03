@@ -128,7 +128,6 @@ pub fn compile_macros(template_path: String) -> Result<()> {
     let path = format!("{}/katex-macros.js", &template_path);
     let content = fs::read_to_string(path)
         .with_context(|| err("Could not read katex macros"))?;
-        // .expect("Could not read katex macros");
 
     // strip off into a json
     let json_str = content
@@ -188,8 +187,7 @@ pub fn to_latex(
 
     // Ensure the markdown file exists
     if !md_path.exists() {
-        err_no_md_file(md_path);
-        std::process::exit(1);
+        return Err(anyhow!(err_no_md_file(md_path)));
     }
 
     // Determine output .tex path
@@ -218,15 +216,13 @@ pub fn to_latex(
     // Determine macros.tex path
     let macros_path = format!("{}/macros.tex", template_path);
     if !Path::new(&macros_path).exists() {
-        err_no_macro_tex(template_path);
-        std::process::exit(1);
+        return Err(anyhow!(err_no_macro_tex(template_path)));
     }
 
     // Determine header.tex path
     let header_path = format!("{}/header.tex", template_path);
     if !Path::new(&header_path).exists() {
-        err_no_header_tex(template_path);
-        std::process::exit(1);
+        return Err(anyhow!(err_no_header_tex(template_path)));
     }
 
     // Run pandoc conversion command
@@ -243,8 +239,7 @@ pub fn to_latex(
     
     // If the pandoc command failed
     if !status.success() {
-        err_pandoc_fails(&status);
-        std::process::exit(1);
+        return Err(anyhow!(err_pandoc_fails(&status)));
     }
 
     println!("Conversion to latex completed. TEX file: {:?}", tex_output_path);
@@ -264,8 +259,7 @@ pub fn to_pdf(
 
     // Ensure the markdown file exists
     if !md_path.exists() {
-        err_no_md_file(md_path);
-        std::process::exit(1);
+        return Err(anyhow!(err_no_md_file(md_path)));
     }
 
     // Determine output .pdf path
@@ -297,8 +291,7 @@ pub fn to_pdf(
 
     // Ensure the macros.tex file exists
     if !macros_path.exists() {
-        err_no_macro_tex(template_path);
-        std::process::exit(1);
+        return Err(anyhow!(err_no_macro_tex(template_path)));
     }
 
     // Determine header.tex path
@@ -307,8 +300,7 @@ pub fn to_pdf(
 
     // Ensure the header.tex file exists
     if !header_path.exists() {
-        err_no_header_tex(template_path);
-        std::process::exit(1);
+        return Err(anyhow!(err_no_header_tex(template_path)));
     }
 
     // Use absolute path as we are changing directories
@@ -337,8 +329,7 @@ pub fn to_pdf(
 
     // If the pandoc command failed
     if !status.success() {
-        err_pandoc_fails(&status);
-        std::process::exit(1);
+        return Err(anyhow!(err_pandoc_fails(&status)));
     }
 
     println!("Conversion to pdf completed. PDF file: {:?}", pdf_output_path);

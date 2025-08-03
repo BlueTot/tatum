@@ -32,42 +32,42 @@ pub fn eshow(result: Result<()>) {
 
 
 // Print error message for when macros.tex is not found
-pub fn err_no_macro_tex(template_path: String) {
-    eprintln!(
+pub fn err_no_macro_tex(template_path: String) -> String {
+    format!(
         "{} {}\n {}",
         "ERROR:".red().bold(),
         format!("{}/macros.tex does not exist.", template_path),
         "Either run `tatum compile-macros <template-path>` \
          or write your own macros.tex".yellow()
-    );
+    )
 }
 
 // Print error message for when header.tex is not found
-pub fn err_no_header_tex(template_path: String) {
-    eprintln!(
+pub fn err_no_header_tex(template_path: String) -> String {
+    format!(
         "{} {}\n {}",
         "ERROR:".red().bold(),
         format!("{}/header.tex does not exist.", template_path),
         "If you do not require a header, create a blank file".yellow()
-    );
+    )
 }
 
 // Print error message for when markdown file is not found
-pub fn err_no_md_file(md_path: &Path) {
-    eprintln!(
+pub fn err_no_md_file(md_path: &Path) -> String{
+    format!(
         "{} {}",
         "ERROR:".red().bold(),
         format!("Markdown file {} does not exist", md_path.to_str().unwrap())
-    );
+    )
 }
 
 // Print error message for when pandoc fails
-pub fn err_pandoc_fails(status: &std::process::ExitStatus) {
-    eprintln!(
+pub fn err_pandoc_fails(status: &std::process::ExitStatus) -> String {
+    format!(
         "{} {}",
         "ERROR:".red().bold(),
         format!("Pandoc failed with status {}", status)
-    );
+    )
 }
 
 // Print error message
