@@ -1,8 +1,10 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use include_dir::Dir;
 use std::fs;
 use std::io::Write;
 use colored::*;
+use inquire::Confirm;
+use anyhow::{Result, anyhow};
 
 pub fn extract_templates_to(template_dir: &Dir<'_>, dest: &Path) -> std::io::Result<()> {
     for file in template_dir.files() {
@@ -76,4 +78,33 @@ pub fn err(msg: &str) -> String {
         "ERROR:".red().bold(),
         msg
     )
+}
+
+pub fn notify_overwrite() -> Result<()> {
+    let ans = Confirm::new("The output file exists. Do you wish to overwrite?")
+        .with_default(false)
+        .prompt();
+
+    match ans {
+        Ok(true) => {
+            println!("{}", "Overwriting ...".yellow());
+            Ok(())
+        }
+        Ok(false) => Err(anyhow!("{}", "Exiting..".red())),
+        Err(_) => Err(anyhow!("{}", "Failed to recognize confirmation.".red()))
+    }
+}
+
+pub fn create_parent_directories(out_file: &PathBuf) {
+    let dir_path = out_file.parent().unwrap_or_else(|| Path::new("."));
+    if !dir_path.exists() {
+        fs::create_dir_all(&dir_path)
+            .expect(format!("Could not create directory {}", &dir_path.to_str().unwrap()).as_str());
+        println!(
+            "{}",
+            format!(
+                "Recursively created {}", &dir_path.to_str().unwrap()
+            ).yellow()
+        );
+    }
 }

@@ -6,12 +6,12 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use colored::*;
-use inquire::Confirm;
 use tokio::io::AsyncWriteExt;
 use anyhow::{Context, Result, anyhow};
 
 use crate::utils::*;
 use crate::render::render_doc;
+
 
 // Async render function that converts to a standalone HTML document
 pub async fn to_html(mut in_file: PathBuf, out_file: Option<PathBuf>, template: String, parent: bool) -> Result<()> {
@@ -25,40 +25,16 @@ pub async fn to_html(mut in_file: PathBuf, out_file: Option<PathBuf>, template: 
         in_file
     });
 
+    // if out file exists, ask if they want to overwrite
     if out_file.exists() {
-        let ans = Confirm::new("The output file exists. Do you wish to overwrite?")
-            .with_default(false)
-            .prompt();
-
-        match ans {
-            Ok(true) => {
-                println!("{}", "Overwriting...".yellow());
-            }
-            Ok(false) => {
-                return Err(anyhow!("{}", "Exiting..".red()));
-            }
-            Err(_) =>  {
-                return Err(anyhow!("{}", "Failed to recognize confirmation.".red()))
-            }
-        }
+        notify_overwrite()?;
     }
 
-    // whether to create parent directory or not (-p flag)
+    // if -p flag is on, try to create parent directories
     if parent {
-        let dir_path = out_file.parent().unwrap_or_else(|| Path::new("."));
-        if !dir_path.exists() {
-            tokio::fs::create_dir_all(&dir_path)
-                .await
-                .expect(format!("Could not create directory {}", &dir_path.to_str().unwrap()).as_str());
-            println!(
-                "{}",
-                format!(
-                    "Recursively created {}", &dir_path.to_str().unwrap()
-                ).yellow()
-            );
-        }
+        create_parent_directories(&out_file);
     }
-
+    
     let out_file = tokio::fs::File::create(&out_file)
         .await
         .with_context(|| err(
@@ -76,13 +52,12 @@ pub async fn to_html(mut in_file: PathBuf, out_file: Option<PathBuf>, template: 
     Ok(())
 }
 
-pub fn init() {
+pub fn init() -> Result<()> {
 
     let root = Path::new(".tatum");
 
     if root.exists() {
-        err_dir_exists(".tatum");
-        std::process::exit(1);
+        return Err(anyhow!(err(".tatum/ directory already exists")));
     }
 
     fs::create_dir_all(&root)
@@ -111,6 +86,7 @@ pub fn init() {
         .expect("Could not write to .tatum/render-list.json");
 
     println!("Created .tatum/render-list.json");
+    Ok(())
 }
 
 pub fn new(template_name: String) {
@@ -224,38 +200,14 @@ pub fn to_latex(
         }
     };
 
-    // if tex output path already exists
+    // if output path exists, ask user if they want to overwrite
     if tex_output_path.exists() {
-        let ans = Confirm::new("The output file exists. Do you wish to overwrite?")
-            .with_default(false)
-            .prompt();
-
-        match ans {
-            Ok(true) => {
-                println!("{}", "Overwriting...".yellow());
-            }
-            Ok(false) => {
-                return Err(anyhow!("{}", "Exiting..".red()));
-            }
-            Err(_) =>  {
-                return Err(anyhow!("{}", "Failed to recognize confirmation.".red()))
-            }
-        }
+        notify_overwrite()?;
     }
 
-    // whether to create parent directory or not (-p flag)
+    // if -p flag is on, try creating parent directories
     if parent {
-        let dir_path = tex_output_path.parent().unwrap_or_else(|| Path::new("."));
-        if !dir_path.exists() {
-            fs::create_dir_all(&dir_path)
-                .expect(format!("Could not create directory {}", &dir_path.to_str().unwrap()).as_str());
-            println!(
-                "{}",
-                format!(
-                    "Recursively created {}", &dir_path.to_str().unwrap()
-                ).yellow()
-            );
-        }
+        create_parent_directories(&tex_output_path);
     }
 
     // Determine macros.tex path
@@ -324,38 +276,14 @@ pub fn to_pdf(
         }
     };
 
-    // if output path already exists
+    // if output file exists, ask user if they want to overwrite
     if pdf_output_path.exists() {
-        let ans = Confirm::new("The output file exists. Do you wish to overwrite?")
-            .with_default(false)
-            .prompt();
-
-        match ans {
-            Ok(true) => {
-                println!("{}", "Overwriting...".yellow());
-            }
-            Ok(false) => {
-                return Err(anyhow!("{}", "Exiting..".red()));
-            }
-            Err(_) =>  {
-                return Err(anyhow!("{}", "Failed to recognize confirmation.".red()))
-            }
-        }
+        notify_overwrite()?;
     }
 
-    // whether to create parent directory or not (-p flag)
+    // if -p flag is on, try creating parent directories
     if parent {
-        let dir_path = pdf_output_path.parent().unwrap_or_else(|| Path::new("."));
-        if !dir_path.exists() {
-            fs::create_dir_all(&dir_path)
-                .expect(format!("Could not create directory {}", &dir_path.to_str().unwrap()).as_str());
-            println!(
-                "{}",
-                format!(
-                    "Recursively created {}", &dir_path.to_str().unwrap()
-                ).yellow()
-            );
-        }
+        create_parent_directories(&pdf_output_path);
     }
 
     // Determine macros.tex path

@@ -156,13 +156,17 @@ async fn main() {
         }
         // Render option - async
         Args::Render { in_file, out_file, template, parent } => {
-            to_html(in_file, out_file, template, parent)
-                .await
-                .expect("Failed to render");
+            match to_html(in_file, out_file, template, parent).await {
+                Ok(_) => (),
+                Err(e) => eprintln!("{}", e.to_string())
+            }
         }
         // Init option
         Args::Init => { 
-            init()
+            match init() {
+                Ok(_) => (),
+                Err(e) => println!("{}", e.to_string())
+            }
         }
         // New option
         Args::New { template_name } => {
