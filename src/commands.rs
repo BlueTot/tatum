@@ -89,24 +89,26 @@ pub fn init() -> Result<()> {
     Ok(())
 }
 
-pub fn new(template_name: String) {
+pub fn new(template_name: String) -> Result<()> {
     let root = Path::new(".tatum");
 
     if !root.exists() {
-        eprintln!(
+        return Err(anyhow!(format!(
             "{} {}\n{}",
             "ERROR:".red().bold(),
             format!(".tatum/ directory doesn't exist."),
             "Please run `tatum init` first".yellow()
-        );
-        std::process::exit(1);
+        )));
     }
     
     let dir = root.join(&template_name);
     
     if dir.exists() {
-        err_dir_exists(dir.to_str().unwrap());
-        std::process::exit(1);
+        return Err(anyhow!(format!(
+            "{} {}",
+            "ERROR:".red().bold(),
+            format!("{} directory doesn't exist.", dir.to_str().unwrap())
+        )));
     }
 
     fs::create_dir_all(&dir)
@@ -118,13 +120,15 @@ pub fn new(template_name: String) {
     ).expect("Could not copy template `default`");
 
     println!("Created .tatum/{}", &template_name);
+    Ok(())
 }
 
-pub fn compile_macros(template_path: String) {
+pub fn compile_macros(template_path: String) -> Result<()> {
     // attempt to read file
     let path = format!("{}/katex-macros.js", &template_path);
     let content = fs::read_to_string(path)
-        .expect("Could not read katex macros");
+        .with_context(|| err("Could not read katex macros"))?;
+        // .expect("Could not read katex macros");
 
     // strip off into a json
     let json_str = content
@@ -169,6 +173,7 @@ pub fn compile_macros(template_path: String) {
     }
 
     println!("Done!");
+    Ok(())
 }
 
 // Convert to latex
@@ -354,21 +359,15 @@ pub async fn render_all(template: String, parent: bool) -> Result<()> {
     for (src, dest) in files.as_object().unwrap() {
         let dest = dest.as_str().unwrap();
         
-        let result = to_html(
+        to_html(
             PathBuf::from(&src), 
             Some(PathBuf::from(&dest)), 
             template.clone(),
             parent 
-        ).await;
-
-        match result {
-            Ok(_) => {
-                println!("Rendered {} to {}", src, dest);
-            }
-            Err(e) => {
-                eprintln!("{}", e.to_string());
-            }
-        }
+        ).await
+         .map(|_| println!("Rendered {} to {}", src, dest))
+         .map_err(|e| eprintln!("{}", e.to_string()))
+         .ok();
     }
     
     Ok(())

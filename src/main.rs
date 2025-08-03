@@ -6,6 +6,7 @@ mod commands;
 mod utils;
 
 use crate::commands::{to_html, init, new, compile_macros, to_latex, to_pdf, render_all};
+use crate::utils::eshow;
 
 use std::path::PathBuf;
 
@@ -156,47 +157,32 @@ async fn main() {
         }
         // Render option - async
         Args::Render { in_file, out_file, template, parent } => {
-            match to_html(in_file, out_file, template, parent).await {
-                Ok(_) => (),
-                Err(e) => eprintln!("{}", e.to_string())
-            }
+            eshow(to_html(in_file, out_file, template, parent).await);
         }
         // Init option
         Args::Init => { 
-            match init() {
-                Ok(_) => (),
-                Err(e) => println!("{}", e.to_string())
-            }
+            eshow(init());
         }
         // New option
         Args::New { template_name } => {
-            new(template_name.to_string())
+            eshow(new(template_name.to_string()));
         }
         // CompileMacros option
         Args::CompileMacros { template } => {
-            compile_macros(template)
+            eshow(compile_macros(template));
         }
         // ToLatex option - compiles to a latex.
         // Used to give more control to user
         Args::ToLatex { in_file, template, out_file, parent } => {
-            match to_latex(in_file, template, out_file, parent) {
-                Ok(_) => (),
-                Err(e) => eprintln!("{}", e.to_string())
-            }
+            eshow(to_latex(in_file, template, out_file, parent));
         }
         // ToPdf option - compiles to a pdf
         Args::ToPdf { in_file, template, out_file, parent } => {
-            match to_pdf(in_file, template, out_file, parent) {
-                Ok(_) => (),
-                Err(e) => eprintln!("{}", e.to_string())
-            }
+            eshow(to_pdf(in_file, template, out_file, parent));
         }
         // RenderAll option - renders all the files in the render-list.json file
         Args::RenderAll {template, parent} => {
-            match render_all(template, parent).await {
-                Ok(_) => (),
-                Err(e) => eprintln!("{}", e.to_string())
-            };
+            eshow(render_all(template, parent).await);
         }
     }
 }

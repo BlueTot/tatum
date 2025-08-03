@@ -24,13 +24,12 @@ pub fn extract_templates_to(template_dir: &Dir<'_>, dest: &Path) -> std::io::Res
     Ok(())
 }
 
-pub fn err_dir_exists(dir_name: &str) {
-    eprintln!(
-        "{} {}",
-        "ERROR:".red().bold(),
-        format!("{} already exists", dir_name)
-    );
+pub fn eshow(result: Result<()>) {
+    result.unwrap_or_else(|e| {
+        eprintln!("{}", e.to_string());
+    })
 }
+
 
 // Print error message for when macros.tex is not found
 pub fn err_no_macro_tex(template_path: String) {
