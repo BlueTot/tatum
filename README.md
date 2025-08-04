@@ -1,20 +1,62 @@
 # Tatum
 
-An extension of [elijah-potter/tatum](https://github.com/elijah-potter/tatum) used to improve markdown note-taking in the terminal.
+Tatum is a simple, highly customisable CLI markdown note-taking tool. This is an extension of the original tatum, [elijah-potter/tatum](https://github.com/elijah-potter/tatum). I originally developed it for making lecture notes and submitting university assignments using _neovim_, so this tool may not be for you. Feel free to clone/fork it and add your own extensions.
 
-Tatum includes:
+## Features
 
-- **Runtime Templating**
-    * Ability to choose *custom* styling templates at runtime via the `-t` option.
-- **Latex Macros**
-    * Easy customisation of *latex replacement macros* to make typing easier.
+### Templates
 
-- **Better Exporting**
-    * Bulk exporting of `.md` to `.html` via the `render-all` command
-    * Professional `.pdf` exports using the `pdflatex` pdf-engine, with support for custom `.tex` header files
-    * Export to _latex_ for further control over PDF exporting pipeline
+Tatum was designed to give _control_ to the user - you can customise almost everything about how your document is previewed, processed, and exported. This is done using _templates_ - preset directories that contain config files located in the `./.tatum` directory. 
 
-### Installation
+The `init` command creates the `./.tatum` directory along with other files, including two default templates called `default` and `bluetot`. `default` is the original template provided by `elijah-potter`, and `bluetot` is my custom template.
+
+```bash
+tatum init
+```
+
+The command `new` creates a new template:
+
+```bash
+tatum new <TEMPLATE_NAME>
+```
+
+
+Each template contains at minimum these files:
+
+- `page.html`
+    * Root html file used for previewing and _exporting to HTML_.
+- `style.css`
+    * Custom stylesheet used for previewing and _exporting to HTML_.
+- `katex-macros.js`
+    * Custom list of _latex macros_ used for previewing, exporting to _HTML_, _LATEX_ and _PDF_.
+- `header.tex`
+    * Custom latex header used for exporting to _LATEX_ and _PDF_.
+
+### Macros
+
+__Katex macros__ are used to define replacements for existing latex commands to make typing easier. For example, you can alias `\mathbb{R}` to `\R`. These are specified by the user in the `katex-macros.js` file.
+
+Visit the [official katex documentation](https://katex.org/docs/supported.html#macros) to see how to add macros yourself.
+
+Macros are also supported when exporting to _LATEX_/_PDF_, but you have to convert the `.js` file to a `.tex` file that the conversion engine can understand. 
+
+```bash
+tatum compile-macros <TEMPLATE_PATH>
+```
+
+Either run the `compile-macros` command, or create the file yourself. Beware that the `compile-macros` command converts everything to a `\newcommand`, which may not work if the command is reserved. To resolve this, manually change it to a `\renewcommand`.
+
+### More Export Formats
+
+Often, university assignments need to be exported professionally to a _PDF_. Tatum supports exporting a markdown file to _PDF_ via the `tatum to-pdf` command, which uses the `pdflatex` engine to use _latex_ as an intermediate conversion step, producing professional documents. 
+
+If you would like to modify the intermediate _latex_ yourself, there is also a `tatum to-latex` command which converts to _latex_ instead. To convert the `.latex` to a `.pdf`, run the `pdflatex` command __in the directory of the md file__. This is necessary to resolve any image paths in the `.latex` file.
+
+Tatum also supports _styling_ when exporting to _PDF_/_LATEX_ - the `header.tex` file can contain any `.tex` code that is injected into the document during exporting. For example, you can add a _fancyhdr_ that shows your name, student id, and page number at the top of every page - a common university submission requirement.
+
+Lastly, Tatum supports __bulk exporting__ to _HTML_ using the `render-all` command. It renders all files specified in the `./.tatum/render-list.json` file to their specified destinations.
+
+## Installation
 
 First, install Tatum:
 
@@ -31,8 +73,3 @@ end)
 ```
 
 Alternatively, check out my _neovim_ config [here](https://github.com/BlueTot/nvim-config/public) to see how it's done.
-
-## Features
-
-Tatum aims to make entirely self-contained `HTML` files.
-If you reference an image in your Markdown, Tatum will resolve the location of the image, encode it as a data URL, and place it in the final file.
