@@ -71,7 +71,7 @@ Next, install `pdflatex` and its extra packages:
 sudo apt install texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
 ```
 
-Install `pandoc`, which is used for file vonersion:
+Install `pandoc`, which is used for file conversion:
 
 ```bash
 sudo apt install pandoc
