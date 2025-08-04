@@ -31,8 +31,6 @@ Each template contains at minimum these files:
 - `header.tex`
     * Custom latex header used for exporting to _LATEX_ and _PDF_.
 
-</br>
-
 ### Macros
 
 __Katex macros__ are used to define replacements for existing latex commands to make typing easier. For example, you can alias `\mathbb{R}` to `\R`. These are specified by the user in the `katex-macros.js` file.
@@ -46,8 +44,6 @@ tatum compile-macros <TEMPLATE_PATH>
 ```
 
 Either run the `compile-macros` command, or create the file yourself. Beware that the `compile-macros` command converts everything to a `\newcommand`, which may not work if the command is reserved. To resolve this, manually change it to a `\renewcommand`.
-
-</br>
 
 ### More Export Formats
 
