@@ -31,6 +31,8 @@ Each template contains at minimum these files:
 - `header.tex`
     * Custom latex header used for exporting to _LATEX_ and _PDF_.
 
+</br>
+
 ### Macros
 
 __Katex macros__ are used to define replacements for existing latex commands to make typing easier. For example, you can alias `\mathbb{R}` to `\R`. These are specified by the user in the `katex-macros.js` file.
@@ -45,13 +47,17 @@ tatum compile-macros <TEMPLATE_PATH>
 
 Either run the `compile-macros` command, or create the file yourself. Beware that the `compile-macros` command converts everything to a `\newcommand`, which may not work if the command is reserved. To resolve this, manually change it to a `\renewcommand`.
 
+</br>
+
 ### More Export Formats
 
-Often, university assignments need to be exported professionally to a _PDF_. Tatum supports exporting a markdown file to _PDF_ via the `tatum to-pdf` command, which uses the `pdflatex` engine to use _latex_ as an intermediate conversion step, producing professional documents. 
+Often, university assignments need to be exported professionally to a _PDF_. Thats why Tatum supports exporting to _PDF_ using the `pdflatex` engine, which produces documents in a _professional latex style_. Tatum also supports converting to _latex_ using the `to-latex` command, which gives users more control over the conversion process. 
 
-If you would like to modify the intermediate _latex_ yourself, there is also a `tatum to-latex` command which converts to _latex_ instead. To convert the `.latex` to a `.pdf`, run the `pdflatex` command __in the directory of the md file__. This is necessary to resolve any image paths in the `.latex` file.
+```bash
+tatum to-pdf <MD_FILE_PATH> -t <TEMPLATE_PATH>
+```
 
-Tatum also supports _styling_ when exporting to _PDF_/_LATEX_ - the `header.tex` file can contain any `.tex` code that is injected into the document during exporting. For example, you can add a _fancyhdr_ that shows your name, student id, and page number at the top of every page - a common university submission requirement.
+You can style the output _LATEX_/_PDF_ document using the `header.tex` file in each template. For example, you can add a _fancyhdr_ that shows your name, student id, and page number at the top of every page - a common university submission requirement.
 
 Lastly, Tatum supports __bulk exporting__ to _HTML_ using the `render-all` command. It renders all files specified in the `./.tatum/render-list.json` file to their specified destinations.
 
