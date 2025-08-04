@@ -63,11 +63,35 @@ First, install Tatum:
 cargo install --git https://github.com/bluetot/tatum --locked
 ```
 
-Next, insert the following snippet into your Neovim config:
+Next, install `pdflatex` and its extra packages:
+
+```bash
+sudo apt install texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
+```
+
+Install `pandoc`, which is used for file vonersion:
+
+```bash
+sudo apt install pandoc
+```
+
+Initialise the `./.tatum` directory:
+
+```bash
+cd ~
+tatum init
+tatum compile-macros ./.tatum/bluetot
+```
+
+Lastly, insert the following snippet into your Neovim config:
 
 ```lua
 vim.keymap.set("n", "<leader>o", function ()
-  vim.fn.jobstart({"tatum", "serve", "--open", vim.fn.expand('%')}, { noremap = true, silent = true })
+    vim.fn.jobstart({
+        "tatum", "serve", 
+        "--open", vim.fn.expand('%'), 
+        "-t", vim.fn.expand('~/.tatum/bluetot'
+    )}, { noremap = true, silent = true })
 end)
 ```
 
