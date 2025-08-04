@@ -20,7 +20,6 @@ The command `new` creates a new template:
 tatum new <TEMPLATE_NAME>
 ```
 
-
 Each template contains at minimum these files:
 
 - `page.html`
