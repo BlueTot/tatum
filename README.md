@@ -89,11 +89,11 @@ Lastly, insert the following snippet into your Neovim config:
 
 ```lua
 vim.keymap.set("n", "<leader>o", function ()
-    vim.fn.jobstart({
-        "tatum", "serve", 
-        "--open", vim.fn.expand('%'), 
-        "-t", vim.fn.expand('~/.tatum/bluetot'
-    )}, { noremap = true, silent = true })
+   vim.fn.jobstart({
+      "tatum", "serve", 
+      "--open", vim.fn.expand('%'),
+      "-t", vim.fn.expand('~/.tatum/bluetot')
+   }, { noremap = true, silent = true })
 end)
 ```
 
