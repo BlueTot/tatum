@@ -6,13 +6,13 @@
 
         <!-- Simplecss stylesheet -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
-        integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
+            integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
 
         <!-- Default katex stylesheets & scripts -->
         <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
-            integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd"
-    crossorigin="anonymous"></script>
+        integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd"
+        crossorigin="anonymous"></script>
 
         <!-- Highlight.js setup - simplified and corrected -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -21,56 +21,66 @@
 
         <!-- Embedding css and macros -->
         <style>
-            {{ inline_css | safe }}
+        {{ inline_css | safe }}
         </style>
         <script>
-                window.katexMacros = {{ katex_macros | safe }};
+        window.katexMacros = {{ katex_macros | safe }};
         </script>
 
         <!-- Rendering script -->
         <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                // Adds captions to images
-                $('img').wrap('<figure>')
-                $('img').after(function () {return `<figcaption>${$(this).attr('alt')}</figcaption>`});
+        document.addEventListener("DOMContentLoaded", function () {
+            // Adds captions to images
+            $('img').wrap('<figure>')
+            $('img').after(function () {return `<figcaption>${$(this).attr('alt')}</figcaption>`});
 
-                // [macro, args] support for katex-macros.js
-                const macros = {};
-                for (const [name, value] of Object.entries(window.katexMacros)) {
-                    if (Array.isArray(value)) {
-                        macros[name] = value[0];
-                    } else {
-                        macros[name] = value;
-                    }
+            // [macro, args] support for katex-macros.js
+            const macros = {};
+            for (const [name, value] of Object.entries(window.katexMacros)) {
+                if (Array.isArray(value)) {
+                    macros[name] = value[0];
+                } else {
+                    macros[name] = value;
                 }
-
-                for (let element of document.getElementsByClassName("math")) {
-                    let content = element.textContent;
-
-                    katex.render(content, element, {
-                        throwOnError: false,
-                        macros
-                    });
-                }
-
-                // Initialise highlight.js for all code blocks
-                hljs.highlightAll();
-
-            });
-
-            {% if use_websocket %}
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const path = urlParams.get('path');
-
-            let socket = new WebSocket(`ws://${location.host}/watch?path=${encodeURI(path)}`);
-            socket.onmessage = function (event) {
-                console.log("Recieved Message");
-                location.reload();
             }
 
-            console.log(`Created websocket connection to listen for changes to ${path}.`);
-            {% endif %}
+            for (let element of document.getElementsByClassName("math")) {
+                let content = element.textContent.trim();
+
+                const isDisplayMath =
+                    element.tagName.toLowerCase() === "div" ||
+                        element.classList.contains("display") ||
+                        element.classList.contains("math-display");
+
+                katex.render(content, element, {
+                    throwOnError: false,
+                    macros,
+                    displayMode: isDisplayMath
+                });
+
+                if (isDisplayMath) {
+                    element.classList.add("math-display");
+                }
+            }
+
+            // Initialise highlight.js for all code blocks
+            hljs.highlightAll();
+
+        });
+
+    {% if use_websocket %}
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const path = urlParams.get('path');
+
+        let socket = new WebSocket(`ws://${location.host}/watch?path=${encodeURI(path)}`);
+        socket.onmessage = function (event) {
+            console.log("Recieved Message");
+            location.reload();
+        }
+
+        console.log(`Created websocket connection to listen for changes to ${path}.`);
+    {% endif %}
         </script>
 
     </head>
