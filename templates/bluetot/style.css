@@ -133,3 +133,14 @@ th {
     background-color: var(--surface);
     color: var(--fg);
 }
+
+.math-left .katex-display {
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+.math-left .katex-display > .katex {
+    text-align: left !important;
+}
+
